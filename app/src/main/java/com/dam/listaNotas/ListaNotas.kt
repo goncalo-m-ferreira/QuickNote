@@ -7,6 +7,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.delay
 
 class ListaNotas : AppCompatActivity() {
 
@@ -102,6 +103,42 @@ class ListaNotas : AppCompatActivity() {
                     // Guardar o total de Notas
                     sp.setTotal(notas.size)
                     delay(1000)
+                }
+            }
+            // Limpar a lista de Notas
+            originalNotaLista.clear()
+            // Adicionar as Notas atualizadas à lista
+            originalNotaLista.addAll(sp.getNotas())
+            // Limpar a lista de Notas
+            notaLista.clear()
+            // Adicionar as Notas atualizadas à lista
+            notaLista.addAll(sp.getNotas())
+
+            // Notifica as mudanças da lista para o RecyclerView
+            adapter.notifyDataSetChanged()
+
+            // Função com evento de criar Nota
+            botaoAdicionarNota()
+
+            // Função com evento para procura Notas
+            barraPesquisa()
+
+            // Função com evento de apagar todas as Notas
+            eventoApagatuTudo()
+
+            // Condição para verificar se o utilizador está logado
+            if (sp.buscarFlag("logado")) {
+                // Sincronizar Notas
+                if (sync.sync(this@ListaNotas)) {
+                    delay(5000)
+                    // Buscar Notas da API
+                    val notas = api.buscarNotasAPI("${TokenManager.buscarToken()}", this@ListaNotas)
+                    //  Guardar Notas
+                    sp.salvarNotasAPISP(notas)
+                    // Atualizar flag
+                    sp.marcarFlag("logado", false)
+                    // Guardar o total de Notas
+                    sp.setTotal(notas.size)
                 }
             }
         }
