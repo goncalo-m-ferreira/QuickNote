@@ -1,5 +1,6 @@
 package com.dam.listaNotas
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
@@ -284,5 +285,30 @@ class ListaNotas : AppCompatActivity() {
             // Chama a função para apagar todas as notas com um AlertDialog
             deleteAll()
         }
+    }
+
+    // Função para apagar todas as notas com a ajuda do AlertDialog
+    private fun deleteAll() {
+        // Construção do AlertDialog usando padrão Builder - this referencia o contexto
+        AlertDialog.Builder(this)
+            // Título
+            .setTitle("Apagar tudo")
+            // Mensagem
+            .setMessage("Tem a certeza que quer apagar as Notas todas?")
+            // Cria e prepara o botão para responder ao click
+            .setPositiveButton("Sim", DialogInterface.OnClickListener { dialog, id ->
+                // Apaga todas as Notas
+                sp.apagarTudo(notaLista)
+                notaLista.addAll(sp.getNotas())
+                adapter.notifyDataSetChanged()
+            })
+            // Cria e prepara o botão para responder ao click
+            .setNegativeButton(
+                "Não",
+                DialogInterface.OnClickListener { dialog, id -> dialog.cancel() })
+            // Faz a construção do AlertDialog com todas as configurações
+            .create()
+            // Exibe
+            .show()
     }
 }
