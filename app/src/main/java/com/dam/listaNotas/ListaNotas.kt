@@ -2,8 +2,11 @@ package com.dam.listaNotas
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -342,4 +345,107 @@ class ListaNotas : AppCompatActivity() {
         val navView: NavigationView = findViewById(R.id.nav_view)
         setupNavigationView(navView)
     }
+    // Função para configurar o NavigationView
+    private fun setupNavigationView(navView: NavigationView) {
+
+        // Inicialização das variaveis
+        val navigationView: NavigationView = findViewById(R.id.nav_view)
+        val headerView = navigationView.getHeaderView(0)
+        val nome = headerView.findViewById<TextView>(R.id.nome)
+        val loginMenuItem = navView.menu.findItem(R.id.nav_login)
+        val ImagemPerfil = headerView.findViewById<ImageView>(R.id.fotoPerfil)
+
+        // Evento que verifica qual o item do menu que foi selecionado e executa a ação correspondente
+        navView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                // Botão para ir para a pagina RascunhoNota para criar uma nova Nota
+                R.id.nav_home -> {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val intent = Intent(this@ListaNotas, RascunhoNota::class.java)
+                        // Variavel index é metida a -1 para evidenciar que não foi escolhido nenhuma na Nota
+                        index=-1
+                        intent.putExtra("objeto",index)
+                        startActivity(intent)
+                    }
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+
+                }
+                // Botão para ir para a pagina Definições
+                R.id.nav_settings -> {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val intent = Intent(this@ListaNotas, Definicoes::class.java)
+                        startActivity(intent)
+                    }
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                // Botão para ir para a pagina Acerca
+                R.id.nav_about -> {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val intent = Intent(this@ListaNotas, Acerca::class.java)
+                        startActivity(intent)
+                    }
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                else -> false
+            }
+        }
+        // Condição para verificar se o utilizador está logado
+        if(!utilizadorEmail.isEmpty()){
+            // Cofiguração das opções exclusivas para o utilizador logado
+            nome.text= UtilizadorManager.buscarUserName().toString()
+            loginMenuItem.setIcon(getResources().getDrawable(R.drawable.login))
+            loginMenuItem.setTitle("Sair")
+            // Condição para verificar se o utilizador tem imagem de perfil
+            if(UtilizadorManager.buscarImagemPerfil() != null){
+                ImagemPerfil?.setImageURI(Uri.parse(UtilizadorManager.buscarImagemPerfil()))
+            }
+            // Evento ao carregar na opção "Sair"
+            loginMenuItem.setOnMenuItemClickListener{
+                // Sinconizar Notas com a API
+                sync.sync(this)
+                // Atualizar flags
+                sp.marcarFlag("buscar", true)
+                sp.marcarFlag("logado", false)
+                // Fazer logout online
+                api.logoutUtilizadorAPI(utilizadorToken, utilizadorEmail, this)
+
+                drawerLayout.closeDrawer(GravityCompat.START)
+                true
+            }
+        }else{
+            // Cofiguração das opções exclusivas para o utilizador offline
+            nome.text= "Convidado"
+            loginMenuItem.setIcon(getResources().getDrawable(R.drawable.logout))
+            loginMenuItem.setTitle("Entrar/Registar")
+            // Evento ao carregar na opção "Entrar/Registar"
+            loginMenuItem.setOnMenuItemClickListener{
+                // Mudar de atividade para a pagina PaginaInicial
+                startActivity(Intent(this, PaginaInicial::class.java))
+                finish()
+                drawerLayout.closeDrawer(GravityCompat.START)
+                true
+            }
+        }
+
+
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    // Função onResume para atualizar o DrawerLayout
+    override fun onResume() {
+        super.onResume()
+        setupDrawerLayout()
+    }
+
 }
