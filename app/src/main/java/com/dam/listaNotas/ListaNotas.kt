@@ -235,4 +235,54 @@ class ListaNotas : AppCompatActivity() {
             }
         }, delay)
     }
+
+    // Função com evento para procura Notas
+    private fun barraPesquisa() {
+        searchBar.clearFocus()
+        // Evento para ao escrever na searchView serem mostradas as Notas correspondentes ao texto inserido
+        searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(texto: String): Boolean {
+                // Chama a função para procurar Notas
+                procurarNota(texto)
+                return true
+            }
+        })
+    }
+
+    // Função para procurar Notas na search bar
+    private fun procurarNota(query: String) {
+        // Lista de Notas que vai ser atualizada
+        val procListaNota = ArrayList<Nota>()
+        procListaNota.clear()
+
+        // Percorre a lista de Notas e verifica se o titulo contem o texto inserido na search bar
+        for (nota in originalNotaLista) {
+            // Se contem adiciona à lista de Notas que vai ser atualizada
+            if (nota.titulo.lowercase().contains(query.lowercase())) {
+                procListaNota.add(nota)
+            }
+        }
+        // Se a lista de Notas que vai ser atualizada estiver vazia mostra uma mensagem
+        if (procListaNota.isEmpty()) {
+            notaLista.clear()
+            Toast.makeText(this, "Não existe", Toast.LENGTH_SHORT).show()
+            // Se não estiver vazia atualiza a lista de Notas
+        } else {
+            notaLista.clear()
+            notaLista.addAll(procListaNota)
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    // Evento para apagar todas as Notas ao carregar no botão
+    private fun eventoApagatuTudo() {
+        apagaTudo.setOnClickListener {
+            // Chama a função para apagar todas as notas com um AlertDialog
+            deleteAll()
+        }
+    }
 }
