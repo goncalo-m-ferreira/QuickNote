@@ -5,12 +5,15 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -310,5 +313,33 @@ class ListaNotas : AppCompatActivity() {
             .create()
             // Exibe
             .show()
+    }
+    // ----------------------------------------------------------------- Menu ---------------------------------------------------------------------------
+
+    // Função para configurar o DrawerLayout
+    private fun setupDrawerLayout() {
+        // Criação do DrawerLayout
+        drawerLayout = findViewById(R.id.drawer_layout)
+        // Botão para abrir o DrawerLayout
+        val menuBtn = findViewById<ImageButton>(R.id.btnMenu)
+
+        // Evento ao carregar no botão que abre o DrawerLayout
+        menuBtn.setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+        // Criação do ActionBarDrawerToggle
+        val toggle = ActionBarDrawerToggle(
+            this,
+            drawerLayout,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+        // Adiciona o toggle ao DrawerLayout
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        // Criação do NavigationView
+        val navView: NavigationView = findViewById(R.id.nav_view)
+        setupNavigationView(navView)
     }
 }
