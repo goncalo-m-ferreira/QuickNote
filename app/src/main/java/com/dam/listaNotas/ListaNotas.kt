@@ -3,6 +3,8 @@ package com.dam.listaNotas
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.drawerlayout.widget.DrawerLayout
@@ -166,5 +168,71 @@ class ListaNotas : AppCompatActivity() {
             }
 
         }
+    }
+
+    // faz check para saber se tem conexão á Internet
+    private fun checkInternet() {
+        // Criação do AlertDialog
+        val builder = AlertDialog.Builder(this@ListaNotas)
+        builder.setTitle("Sem Conexão á Internet!")
+        builder.setMessage("Por favor conecte-se á Internet para poder usar a aplicação ou utilize o modo convidado")
+        // esta opção faz um logout forçado offline e muda para modo offline pois não tem internet
+        builder.setPositiveButton("Convidado") { dialog, _ ->
+            dialog.dismiss()
+            isDialogShowing = false
+            // Apagar dados do utilizador
+            UtilizadorManager.apagarUtilizador()
+            // Apagar token
+            TokenManager.apagarToken()
+            // Atualizar flags
+            sp.marcarFlag("buscar", true)
+            sp.marcarFlag("logado", false)
+            finish()
+            startActivity(Intent(this@ListaNotas, ListaNotas::class.java))
+        }
+        // esta opção faz um logout forçado offline e sai da aplicação pois não tem internet
+        builder.setNegativeButton("Sair") { dialog, _ ->
+            // Apagar dados do utilizador
+            UtilizadorManager.apagarUtilizador()
+            // Apagar token
+            TokenManager.apagarToken()
+            // Atualizar flags
+            sp.marcarFlag("buscar", true)
+            sp.marcarFlag("logado", false)
+            finishAffinity()
+        }
+        val dialog = builder.create()
+
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                // Verifica se existe utilizador logado pois este utiliza modo online
+                if (utilizadorEmail.isNotEmpty()) {
+                    // Verifica se tem conexão á Internet
+                    if (!api.internetConectada(this@ListaNotas) && !isDialogShowing) {
+                        // Verifica se o AlertDialog está a ser mostrado através da flag
+                        if (sp.buscarFlag("internet")) {
+                            if (!dialog.isShowing) {
+                                dialog.show()
+                                isDialogShowing = true
+                                // Atualizar flag
+                                sp.marcarFlag("internet", false)
+                            }
+                        }
+                        // Verifica se tem conexão á Internet e se o AlertDialog está a ser mostrado
+                    } else if (api.internetConectada(this@ListaNotas) && isDialogShowing) {
+                        dialog.dismiss()
+                        isDialogShowing = false
+                        // Atualizar flag caso seja falsa
+                        if (!sp.buscarFlag("internet")) {
+                            Toast.makeText(this@ListaNotas, "Tem internet", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                        // Atualizar flag
+                        sp.marcarFlag("internet", true)
+                    }
+                }
+                handler.postDelayed(this, delay)
+            }
+        }, delay)
     }
 }
