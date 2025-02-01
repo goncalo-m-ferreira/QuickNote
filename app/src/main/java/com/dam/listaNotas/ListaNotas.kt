@@ -1,5 +1,6 @@
 package com.dam.listaNotas
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
@@ -7,7 +8,10 @@ import androidx.appcompat.widget.SearchView
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class ListaNotas : AppCompatActivity() {
 
@@ -141,6 +145,26 @@ class ListaNotas : AppCompatActivity() {
                     sp.setTotal(notas.size)
                 }
             }
+            // Função que lida com a verificação da conexão á Internet
+            checkInternet()
+
+        }
+
+    }
+
+    // Função com evento de criar Nota
+    private fun botaoAdicionarNota() {
+        // Evento ao carregar no botão
+        fab.setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                // Muda de atividade
+                val intent = Intent(this@ListaNotas, RascunhoNota::class.java)
+                // Variavel index é metida a -1 para evidenciar que não foi escolhido nenhuma Nota
+                index = -1
+                intent.putExtra("objeto", index)
+                startActivity(intent)
+            }
+
         }
     }
 }
