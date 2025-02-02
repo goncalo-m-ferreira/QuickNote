@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.dam.listaNotas.R
-import com.dam.listaNotas.models.Nota
+import com.dam.quicknote.R
+import com.dam.quicknote.models.Nota
 
 class ListaNotasAdapter(private val notas: ArrayList<Nota>, private val context: Context,  private val itemClickListener: (Nota) -> Unit) :
     RecyclerView.Adapter<ListaNotasAdapter.ViewHolder>() {
