@@ -1,4 +1,4 @@
-package com.dam.listaNotas
+package com.dam.quicknote.listaNotas
 
 import android.content.Context
 import android.graphics.Rect

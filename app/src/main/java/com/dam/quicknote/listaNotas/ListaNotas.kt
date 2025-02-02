@@ -1,4 +1,4 @@
-package com.dam.listaNotas
+package com.dam.quicknote.listaNotas
 
 import android.content.DialogInterface
 import android.content.Intent
@@ -18,16 +18,16 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.dam.QuickNote.Acerca
-import com.dam.QuickNote.Definicoes
-import com.dam.QuickNote.PaginaInicial
-import com.dam.QuickNote.R
-import com.dam.QuickNote.autenticacao.TokenManager
-import com.dam.QuickNote.autenticacao.UtilizadorManager
-import com.dam.QuickNote.models.Nota
-import com.dam.QuickNote.storage.API
-import com.dam.QuickNote.storage.MinhaSharedPreferences
-import com.dam.QuickNote.storage.Sincronizar
+import com.dam.listaNotas.Acerca
+import com.dam.listaNotas.Definicoes
+import com.dam.listaNotas.PaginaInicial
+import com.dam.listaNotas.R
+import com.dam.autenticacao.TokenManager
+import com.dam.autenticacao.UtilizadorManager
+import com.dam.listaNotas.models.Nota
+import com.dam.listaNotas.storage.API
+import com.dam.listaNotas.storage.MinhaSharedPreferences
+import com.dam.listaNotas.storage.Sincronizar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.CoroutineScope
