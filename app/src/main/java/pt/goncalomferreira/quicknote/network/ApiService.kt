@@ -1,0 +1,63 @@
+package pt.goncalomferreira.quicknote.network
+
+import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
+
+interface ApiService {
+
+    @POST("auth/register")
+    suspend fun register(
+        @Body request: AuthRequest
+    ): Response<AuthResponse>
+
+    @POST("auth/login")
+    suspend fun login(
+        @Body request: AuthRequest
+    ): Response<AuthResponse>
+
+    @POST("auth/logout")
+    suspend fun logout(
+        @Header("Authorization") token: String
+    ): Response<MessageResponse>
+
+    @GET("users/me")
+    suspend fun getCurrentUser(
+        @Header("Authorization") token: String
+    ): Response<UserResponse>
+
+    @GET("notes")
+    suspend fun getNotes(
+        @Header("Authorization") token: String
+    ): Response<NotesResponse>
+
+    @GET("notes/{id}")
+    suspend fun getNoteById(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long
+    ): Response<NoteResponse>
+
+    @POST("notes")
+    suspend fun createNote(
+        @Header("Authorization") token: String,
+        @Body request: NoteRequest
+    ): Response<NoteResponse>
+
+    @PUT("notes/{id}")
+    suspend fun updateNote(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long,
+        @Body request: NoteRequest
+    ): Response<NoteResponse>
+
+    @DELETE("notes/{id}")
+    suspend fun deleteNote(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long
+    ): Response<MessageResponse>
+}

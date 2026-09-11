@@ -44,6 +44,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.recyclerview)
 
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

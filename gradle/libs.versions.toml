@@ -12,6 +12,7 @@ room = "3.0.3"
 ksp = "2.3.12"
 lifecycle = "2.9.4"
 recyclerview = "1.4.0"
+retrofit = "2.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -26,6 +27,8 @@ androidx-room-runtime = { module = "androidx.room3:room3-runtime", version.ref =
 androidx-room-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
