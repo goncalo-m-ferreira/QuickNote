@@ -3,6 +3,7 @@ package pt.goncalomferreira.quicknote
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -44,6 +45,38 @@ class NoteEditActivity : AppCompatActivity() {
             .getDatabase(applicationContext)
             .noteDao()
 
+        val noteId = intent.getLongExtra("NOTE_ID", -1L)
+        var existingNote: Note? = null
+
+        // Verifica se o editor foi aberto para criar ou editar uma nota.
+        if (noteId != -1L) {
+            buttonGuardar.isEnabled = false
+
+            lifecycleScope.launch {
+                existingNote = noteDao.getById(noteId)
+
+                val note = existingNote
+
+                if (note == null) {
+                    Toast.makeText(
+                        this@NoteEditActivity,
+                        "Nota não encontrada.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    finish()
+                    return@launch
+                }
+
+                editTextTitulo.setText(note.title)
+                editTextConteudo.setText(note.content)
+
+                findViewById<TextView>(R.id.textViewEditorTitulo).text = "Editar nota"
+
+                buttonGuardar.isEnabled = true
+            }
+        }
+
         buttonGuardar.setOnClickListener {
 
             val titulo = editTextTitulo.text.toString().trim()
@@ -60,14 +93,26 @@ class NoteEditActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val note = Note(
-                title = titulo,
-                content = conteudo
-            )
-
-            // Guarda a nota fora da thread principal para nao bloquear a interface.
+            // Atualiza a nota existente ou cria uma nova nota.
             lifecycleScope.launch {
-                noteDao.insert(note)
+                val note = existingNote
+
+                if (note == null) {
+                    noteDao.insert(
+                        Note(
+                            title = titulo,
+                            content = conteudo
+                        )
+                    )
+                } else {
+                    noteDao.update(
+                        note.copy(
+                            title = titulo,
+                            content = conteudo,
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
 
                 Toast.makeText(
                     this@NoteEditActivity,

@@ -47,7 +47,13 @@ class MainActivity : AppCompatActivity() {
         recyclerViewNotas = findViewById(R.id.recyclerViewNotas)
 
         // Configura a lista que apresenta as notas guardadas.
-        noteAdapter = NoteAdapter()
+        // Abre a nota selecionada e envia o seu identificador para o editor.
+        noteAdapter = NoteAdapter { note ->
+            val intent = Intent(this, NoteEditActivity::class.java).apply {
+                putExtra("NOTE_ID", note.id)
+            }
+            startActivity(intent)
+        }
         recyclerViewNotas.layoutManager = LinearLayoutManager(this)
         recyclerViewNotas.adapter = noteAdapter
 

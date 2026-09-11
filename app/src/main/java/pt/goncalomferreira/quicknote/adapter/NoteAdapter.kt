@@ -9,7 +9,9 @@ import pt.goncalomferreira.quicknote.R
 import pt.goncalomferreira.quicknote.model.Note
 
 // Liga a lista de notas aos cartoes apresentados no RecyclerView.
-class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
+class NoteAdapter(
+    private val onNoteClick: (Note) -> Unit
+) : RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
 
     private var notes: List<Note> = emptyList()
 
@@ -33,6 +35,11 @@ class NoteAdapter : RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
 
         holder.title.text = note.title
         holder.content.text = note.content
+
+        // Informa a Activity sobre a nota selecionada pelo utilizador.
+        holder.itemView.setOnClickListener {
+            onNoteClick(note)
+        }
     }
 
     override fun getItemCount(): Int {
