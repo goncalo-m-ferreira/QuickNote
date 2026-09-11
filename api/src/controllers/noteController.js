@@ -18,9 +18,14 @@ const NoteController = {
         return res.status(400).json({ error: 'Invalid note ID format.' });
       }
 
-      const note = await NoteModel.findByIdAndUser(noteId, req.user.userId);
+      const note = await NoteModel.findById(noteId);
       if (!note) {
         return res.status(404).json({ error: 'Note not found.' });
+      }
+
+      // Authorization check: Verify resource owner
+      if (note.user_id !== req.user.userId) {
+        return res.status(403).json({ error: 'Forbidden: You do not have permission to access this note.' });
       }
 
       return res.status(200).json({ note });
@@ -61,8 +66,17 @@ const NoteController = {
         return res.status(400).json({ error: 'Invalid note ID format.' });
       }
 
-      const { title, content } = req.body;
+      const note = await NoteModel.findById(noteId);
+      if (!note) {
+        return res.status(404).json({ error: 'Note not found.' });
+      }
 
+      // Authorization check: Verify resource owner
+      if (note.user_id !== req.user.userId) {
+        return res.status(403).json({ error: 'Forbidden: You do not have permission to modify this note.' });
+      }
+
+      const { title, content } = req.body;
       if (!title || typeof title !== 'string' || title.trim() === '') {
         return res.status(400).json({ error: 'Note title is required.' });
       }
@@ -73,10 +87,6 @@ const NoteController = {
         title,
         content !== undefined && content !== null ? String(content) : ''
       );
-
-      if (!updatedNote) {
-        return res.status(404).json({ error: 'Note not found or unauthorized.' });
-      }
 
       return res.status(200).json({
         message: 'Note updated successfully.',
@@ -95,11 +105,17 @@ const NoteController = {
         return res.status(400).json({ error: 'Invalid note ID format.' });
       }
 
-      const deleted = await NoteModel.delete(noteId, req.user.userId);
-      if (!deleted) {
-        return res.status(404).json({ error: 'Note not found or unauthorized.' });
+      const note = await NoteModel.findById(noteId);
+      if (!note) {
+        return res.status(404).json({ error: 'Note not found.' });
       }
 
+      // Authorization check: Verify resource owner
+      if (note.user_id !== req.user.userId) {
+        return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this note.' });
+      }
+
+      await NoteModel.delete(noteId, req.user.userId);
       return res.status(200).json({ message: 'Note deleted successfully.' });
     } catch (error) {
       console.error('Error deleting note:', error);

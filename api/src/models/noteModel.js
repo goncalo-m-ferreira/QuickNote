@@ -12,6 +12,16 @@ const NoteModel = {
     return result.rows;
   },
 
+  async findById(id) {
+    const result = await db.query(
+      `SELECT id, user_id, title, content, created_at, updated_at
+       FROM notes
+       WHERE id = $1`,
+      [id]
+    );
+    return result.rows[0] || null;
+  },
+
   async findByIdAndUser(id, userId) {
     const result = await db.query(
       `SELECT id, user_id, title, content, created_at, updated_at
