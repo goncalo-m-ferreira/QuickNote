@@ -29,6 +29,28 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/textViewUser"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/buttonLogout"
+        app:layout_constraintEnd_toStartOf="@id/buttonLogout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/buttonLogout"
+        tools:text="Sessão: utilizador@example.com" />
+
+    <Button
+        android:id="@+id/buttonLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/logout_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonSobre" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewNotas"
         android:layout_width="0dp"
@@ -38,7 +60,7 @@
         app:layout_constraintBottom_toTopOf="@id/buttonNovaNota"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewTitulo"
+        app:layout_constraintTop_toBottomOf="@id/buttonLogout"
         tools:listitem="@android:layout/simple_list_item_1" />
 
     <TextView

@@ -25,6 +25,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var buttonLoginAbout: Button
 
     private lateinit var sessionManager: SessionManager
+    private var isCheckingSession = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +68,8 @@ class LoginActivity : AppCompatActivity() {
 
         // Validação local e autenticação real no clique do botão Entrar
         buttonLogin.setOnClickListener {
+            if (isCheckingSession) return@setOnClickListener
+
             val email = editTextLoginEmail.text.toString().trim()
             val password = editTextLoginPassword.text.toString()
 
@@ -105,6 +108,11 @@ class LoginActivity : AppCompatActivity() {
 
                         if (!token.isNullOrBlank()) {
                             sessionManager.saveToken(token)
+
+                            val userEmail = authResponse.user?.email
+                            if (!userEmail.isNullOrBlank()) {
+                                sessionManager.saveUserEmail(userEmail)
+                            }
 
                             val intent = Intent(this@LoginActivity, MainActivity::class.java)
                             startActivity(intent)
@@ -145,6 +153,66 @@ class LoginActivity : AppCompatActivity() {
                 setControlsEnabled(true)
                 buttonLogin.text = getString(R.string.login_button)
             }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        checkExistingSession()
+    }
+
+    private fun checkExistingSession() {
+        if (isCheckingSession) return
+
+        val authHeader = sessionManager.getAuthorizationHeader() ?: return
+
+        isCheckingSession = true
+        // Impede novo login enquanto valida a sessão guardada
+        setControlsEnabled(false)
+        buttonLogin.text = getString(R.string.checking_session)
+
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.apiService.getCurrentUser(authHeader)
+
+                if (response.isSuccessful) {
+                    val userEmail = response.body()?.user?.email
+                    if (!userEmail.isNullOrBlank()) {
+                        sessionManager.saveUserEmail(userEmail)
+                    }
+
+                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                    return@launch
+                } else if (response.code() == 401 || response.code() == 403) {
+                    sessionManager.clearSession()
+                } else {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        getString(R.string.error_session_validation),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: IOException) {
+                Toast.makeText(
+                    this@LoginActivity,
+                    getString(R.string.error_session_validation),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@LoginActivity,
+                    getString(R.string.error_session_validation),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } finally {
+                isCheckingSession = false
+            }
+
+            // Reativa os controlos e repõe o texto do botão se não navegou para a MainActivity
+            setControlsEnabled(true)
+            buttonLogin.text = getString(R.string.login_button)
         }
     }
 

@@ -27,12 +27,25 @@ class SessionManager(context: Context) {
         return if (!token.isNullOrBlank()) "Bearer $token" else null
     }
 
+    fun saveUserEmail(email: String) {
+        prefs.edit().putString(KEY_USER_EMAIL, email.trim()).apply()
+    }
+
+    fun getUserEmail(): String? {
+        val email = prefs.getString(KEY_USER_EMAIL, null)
+        return if (!email.isNullOrBlank()) email else null
+    }
+
     fun clearSession() {
-        prefs.edit().remove(KEY_JWT_TOKEN).apply()
+        prefs.edit()
+            .remove(KEY_JWT_TOKEN)
+            .remove(KEY_USER_EMAIL)
+            .apply()
     }
 
     companion object {
         private const val PREF_NAME = "quicknote_session"
         private const val KEY_JWT_TOKEN = "jwt_token"
+        private const val KEY_USER_EMAIL = "user_email"
     }
 }

@@ -112,6 +112,11 @@ class RegisterActivity : AppCompatActivity() {
                         if (!token.isNullOrBlank()) {
                             sessionManager.saveToken(token)
 
+                            val userEmail = authResponse.user?.email
+                            if (!userEmail.isNullOrBlank()) {
+                                sessionManager.saveUserEmail(userEmail)
+                            }
+
                             val intent = Intent(this@RegisterActivity, MainActivity::class.java)
                             startActivity(intent)
                             finishAffinity()

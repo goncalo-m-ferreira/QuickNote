@@ -62,4 +62,10 @@
     <string name="error_server">Erro no servidor. Tente novamente mais tarde.</string>
     <string name="error_connection">Sem ligação à internet ou à API. Tente novamente.</string>
     <string name="error_unknown">Ocorreu um erro inesperado. Tente novamente.</string>
+    <string name="session_user">Sessão: %1$s</string>
+    <string name="authenticated_user">Utilizador autenticado</string>
+    <string name="logout_button">Terminar sessão</string>
+    <string name="checking_session">A verificar sessão...</string>
+    <string name="logging_out">A terminar sessão...</string>
+    <string name="error_session_validation">Não foi possível validar a sessão. Verifique a ligação.</string>
 </resources>
