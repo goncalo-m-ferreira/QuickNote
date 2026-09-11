@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -18,6 +19,8 @@ import pt.goncalomferreira.quicknote.auth.SessionManager
 import pt.goncalomferreira.quicknote.data.AppDatabase
 import pt.goncalomferreira.quicknote.data.NoteDao
 import pt.goncalomferreira.quicknote.network.ApiClient
+import pt.goncalomferreira.quicknote.network.ApiNoteMapper
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var textViewUser: TextView
     private lateinit var buttonLogout: Button
 
+    private var isRefreshingNotes = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -36,11 +41,7 @@ class MainActivity : AppCompatActivity() {
 
         // Proteção da MainActivity: verifica se existe token guardado.
         if (sessionManager.getToken() == null) {
-            val intent = Intent(this, LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            startActivity(intent)
-            finish()
+            redirectToLogin()
             return
         }
 
@@ -85,18 +86,12 @@ class MainActivity : AppCompatActivity() {
                 if (authHeader != null) {
                     try {
                         ApiClient.apiService.logout(authHeader)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         // Ignora falhas de rede no logout remoto (JWT é stateless)
                     }
                 }
 
-                sessionManager.clearSession()
-
-                val intent = Intent(this@MainActivity, LoginActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                startActivity(intent)
-                finish()
+                redirectToLogin()
             }
         }
 
@@ -135,28 +130,128 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (sessionManager.getToken() == null) {
-            val intent = Intent(this, LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            startActivity(intent)
-            finish()
+        val authHeader = sessionManager.getAuthorizationHeader()
+        if (authHeader == null) {
+            redirectToLogin()
             return
         }
 
-        // Atualiza a lista sempre que o utilizador regressa a este ecrã.
+        loadAndSyncNotes(authHeader)
+    }
+
+    private fun loadAndSyncNotes(authHeader: String) {
         lifecycleScope.launch {
-            val notas = noteDao.getAll()
+            var ownerEmail = sessionManager.getUserEmail()
 
-            if (notas.isEmpty()) {
-                recyclerViewNotas.visibility = View.GONE
-                textViewSemNotas.visibility = View.VISIBLE
+            // Se o email do utilizador nao estiver guardado na sessao, tenta obter via GET /users/me
+            if (ownerEmail.isNullOrBlank()) {
+                try {
+                    val userResponse = ApiClient.apiService.getCurrentUser(authHeader)
+                    if (userResponse.isSuccessful) {
+                        val fetchedEmail = userResponse.body()?.user?.email
+                        if (!fetchedEmail.isNullOrBlank()) {
+                            sessionManager.saveUserEmail(fetchedEmail)
+                            ownerEmail = fetchedEmail
+                            textViewUser.text = getString(R.string.session_user, ownerEmail)
+                        } else {
+                            return@launch
+                        }
+                    } else if (userResponse.code() == 401 || userResponse.code() == 403) {
+                        redirectToLogin()
+                        return@launch
+                    } else {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.error_fetch_notes),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@launch
+                    }
+                } catch (_: Exception) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        getString(R.string.error_connection_showing_cache),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
             } else {
-                textViewSemNotas.visibility = View.GONE
-                recyclerViewNotas.visibility = View.VISIBLE
+                textViewUser.text = getString(R.string.session_user, ownerEmail)
+            }
 
-                noteAdapter.submitList(notas)
+            // 1. Carregar imediatamente o cache local do ownerEmail
+            updateUIWithLocalCache(ownerEmail)
+
+            // 2. Sincronizar com a API
+            if (!isRefreshingNotes) {
+                syncNotesFromApi(authHeader, ownerEmail)
             }
         }
+    }
+
+    private suspend fun updateUIWithLocalCache(ownerEmail: String) {
+        val notas = noteDao.getByOwnerEmail(ownerEmail)
+
+        if (notas.isEmpty()) {
+            recyclerViewNotas.visibility = View.GONE
+            textViewSemNotas.visibility = View.VISIBLE
+        } else {
+            textViewSemNotas.visibility = View.GONE
+            recyclerViewNotas.visibility = View.VISIBLE
+
+            noteAdapter.submitList(notas)
+        }
+    }
+
+    private suspend fun syncNotesFromApi(authHeader: String, ownerEmail: String) {
+        isRefreshingNotes = true
+        try {
+            val response = ApiClient.apiService.getNotes(authHeader)
+
+            if (response.isSuccessful) {
+                val apiNotes = response.body()?.notes ?: emptyList()
+
+                val convertedNotes = apiNotes.mapNotNull { apiNote ->
+                    ApiNoteMapper.toEntity(apiNote, ownerEmail)
+                }
+
+                noteDao.replaceCacheForOwner(ownerEmail, convertedNotes)
+                updateUIWithLocalCache(ownerEmail)
+            } else {
+                when (response.code()) {
+                    401, 403 -> redirectToLogin()
+                    else -> {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.error_fetch_notes),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        } catch (_: IOException) {
+            Toast.makeText(
+                this@MainActivity,
+                getString(R.string.error_connection_showing_cache),
+                Toast.LENGTH_SHORT
+            ).show()
+        } catch (_: Exception) {
+            Toast.makeText(
+                this@MainActivity,
+                getString(R.string.error_fetch_notes),
+                Toast.LENGTH_SHORT
+            ).show()
+        } finally {
+            isRefreshingNotes = false
+        }
+    }
+
+    private fun redirectToLogin() {
+        sessionManager.clearSession()
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 }
