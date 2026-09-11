@@ -2,6 +2,7 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
@@ -18,7 +19,7 @@
             android:id="@+id/textViewNoteTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Título da nota"
+            tools:text="Título da nota"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -29,7 +30,7 @@
             android:layout_marginTop="6dp"
             android:ellipsize="end"
             android:maxLines="3"
-            android:text="Conteúdo da nota" />
+            tools:text="Conteúdo da nota" />
 
     </LinearLayout>
 

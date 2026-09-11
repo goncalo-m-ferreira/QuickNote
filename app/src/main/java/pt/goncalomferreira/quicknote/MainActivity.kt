@@ -81,7 +81,6 @@ class MainActivity : AppCompatActivity() {
             if (notas.isEmpty()) {
                 recyclerViewNotas.visibility = View.GONE
                 textViewSemNotas.visibility = View.VISIBLE
-                textViewSemNotas.text = "Ainda não existem notas."
             } else {
                 textViewSemNotas.visibility = View.GONE
                 recyclerViewNotas.visibility = View.VISIBLE

@@ -13,7 +13,7 @@
         android:id="@+id/textViewTitulo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="As minhas notas"
+        android:text="@string/main_title"
         android:textSize="28sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -36,7 +36,7 @@
         android:id="@+id/textViewSemNotas"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ainda não existem notas."
+        android:text="@string/empty_notes_message"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -48,7 +48,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:text="Nova nota"
+        android:text="@string/new_note"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

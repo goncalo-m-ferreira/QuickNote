@@ -63,7 +63,7 @@ class NoteEditActivity : AppCompatActivity() {
                 if (note == null) {
                     Toast.makeText(
                         this@NoteEditActivity,
-                        "Nota não encontrada.",
+                        getString(R.string.note_not_found),
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -74,7 +74,8 @@ class NoteEditActivity : AppCompatActivity() {
                 editTextTitulo.setText(note.title)
                 editTextConteudo.setText(note.content)
 
-                findViewById<TextView>(R.id.textViewEditorTitulo).text = "Editar nota"
+                findViewById<TextView>(R.id.textViewEditorTitulo).text =
+                    getString(R.string.editor_edit_note_title)
                 buttonEliminar.visibility = View.VISIBLE
 
                 buttonGuardar.isEnabled = true
@@ -86,16 +87,16 @@ class NoteEditActivity : AppCompatActivity() {
             val note = existingNote ?: return@setOnClickListener
 
             AlertDialog.Builder(this)
-                .setTitle("Eliminar nota")
-                .setMessage("Tem a certeza de que pretende eliminar esta nota?")
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Eliminar") { _, _ ->
+                .setTitle(R.string.delete_note)
+                .setMessage(R.string.delete_note_confirmation)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.delete_note) { _, _ ->
                     lifecycleScope.launch {
                         noteDao.delete(note)
 
                         Toast.makeText(
                             this@NoteEditActivity,
-                            "Nota eliminada.",
+                            getString(R.string.note_deleted),
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -112,12 +113,12 @@ class NoteEditActivity : AppCompatActivity() {
 
             // Valida os dados antes de permitir a gravacao da nota.
             if (titulo.isEmpty()) {
-                editTextTitulo.error = "Introduza um título."
+                editTextTitulo.error = getString(R.string.note_title_required)
                 return@setOnClickListener
             }
 
             if (conteudo.isEmpty()) {
-                editTextConteudo.error = "Introduza o conteúdo da nota."
+                editTextConteudo.error = getString(R.string.note_content_required)
                 return@setOnClickListener
             }
 
@@ -144,7 +145,7 @@ class NoteEditActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this@NoteEditActivity,
-                    "Nota guardada.",
+                    getString(R.string.note_saved),
                     Toast.LENGTH_SHORT
                 ).show()
 
