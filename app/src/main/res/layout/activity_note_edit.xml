@@ -41,10 +41,21 @@
         android:hint="Escreva a sua nota..."
         android:inputType="textCapSentences|textMultiLine"
         android:minLines="8"
-        app:layout_constraintBottom_toTopOf="@id/buttonGuardar"
+        app:layout_constraintBottom_toTopOf="@id/buttonEliminar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editTextTitulo" />
+
+    <Button
+        android:id="@+id/buttonEliminar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Eliminar nota"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/buttonGuardar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/buttonGuardar"

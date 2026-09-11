@@ -1,6 +1,7 @@
 package pt.goncalomferreira.quicknote.data
 
 import androidx.room3.Dao
+import androidx.room3.Delete
 import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Update
@@ -17,6 +18,10 @@ interface NoteDao {
     // Atualiza uma nota existente na base de dados.
     @Update
     suspend fun update(note: Note)
+
+    // Elimina uma nota existente da base de dados.
+    @Delete
+    suspend fun delete(note: Note)
 
     // Obtem todas as notas, mostrando primeiro as alteradas mais recentemente.
     @Query("SELECT * FROM notes ORDER BY updatedAt DESC")

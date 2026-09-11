@@ -1,11 +1,13 @@
 package pt.goncalomferreira.quicknote
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -39,6 +41,7 @@ class NoteEditActivity : AppCompatActivity() {
         val editTextTitulo = findViewById<EditText>(R.id.editTextTitulo)
         val editTextConteudo = findViewById<EditText>(R.id.editTextConteudo)
         val buttonGuardar = findViewById<Button>(R.id.buttonGuardar)
+        val buttonEliminar = findViewById<Button>(R.id.buttonEliminar)
 
         // Obtem o DAO atraves da instancia unica da base de dados Room.
         val noteDao = AppDatabase
@@ -72,9 +75,34 @@ class NoteEditActivity : AppCompatActivity() {
                 editTextConteudo.setText(note.content)
 
                 findViewById<TextView>(R.id.textViewEditorTitulo).text = "Editar nota"
+                buttonEliminar.visibility = View.VISIBLE
 
                 buttonGuardar.isEnabled = true
             }
+        }
+
+        // Pede confirmacao antes de eliminar definitivamente a nota.
+        buttonEliminar.setOnClickListener {
+            val note = existingNote ?: return@setOnClickListener
+
+            AlertDialog.Builder(this)
+                .setTitle("Eliminar nota")
+                .setMessage("Tem a certeza de que pretende eliminar esta nota?")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Eliminar") { _, _ ->
+                    lifecycleScope.launch {
+                        noteDao.delete(note)
+
+                        Toast.makeText(
+                            this@NoteEditActivity,
+                            "Nota eliminada.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        finish()
+                    }
+                }
+                .show()
         }
 
         buttonGuardar.setOnClickListener {
