@@ -21,8 +21,8 @@ Backend REST API for the QuickNote Android mobile application. Built with Node.j
 2. **Password Security:** Passwords are never stored in plain text and are excluded from all query returns (`password_hash` is never exposed).
 3. **Stateless JWT Authorization:** Protected endpoints require `Authorization: Bearer <token>` header.
 4. **Ownership-Based Access Control:**
-   - `401 Unauthorized`: Missing, invalid, or expired JWT.
-   - `403 Forbidden`: Authenticated user attempts to read, modify, or delete a note owned by another user.
+   - `401 Unauthorized`: Missing or malformed `Authorization` header.
+   - `403 Forbidden`: Invalid, corrupted, or expired JWT; or authenticated user attempts to read, modify, or delete a note owned by another user.
    - `404 Not Found`: Requested resource ID does not exist in the database.
 5. **SQL Injection Prevention:** All database operations utilize parameterized queries (`$1`, `$2`).
 
@@ -96,7 +96,7 @@ JWT_EXPIRES_IN=7d
     ```
   - **Responses:**
     - `201 Created`: User registered successfully with signed JWT.
-    - `400 Bad Request`: Missing fields, invalid email format, or password < 6 characters.
+    - `400 Bad Request`: Missing fields, non-string types, email > 255 chars, invalid email format, or password < 6 characters.
     - `409 Conflict`: Email already registered.
 
 - **`POST /auth/login`**
@@ -110,18 +110,21 @@ JWT_EXPIRES_IN=7d
     ```
   - **Responses:**
     - `200 OK`: Login successful with signed JWT.
-    - `400 Bad Request`: Missing email or password.
+    - `400 Bad Request`: Missing email or password, non-string types, or email > 255 chars.
     - `401 Unauthorized`: Invalid credentials.
 
 - **`POST /auth/logout`**
   - **Auth:** Bearer Token required
   - **Header:** `Authorization: Bearer <token>`
-  - **Response (200 OK):**
-    ```json
-    {
-      "message": "Logout successful. Token invalidated on client."
-    }
-    ```
+  - **Responses:**
+    - `200 OK`:
+      ```json
+      {
+        "message": "Logout successful. Token invalidated on client."
+      }
+      ```
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Invalid, corrupted, or expired token.
 
 ---
 
@@ -130,17 +133,20 @@ JWT_EXPIRES_IN=7d
 - **`GET /users/me`**
   - **Auth:** Bearer Token required
   - **Header:** `Authorization: Bearer <token>`
-  - **Response (200 OK):**
-    ```json
-    {
-      "user": {
-        "id": 1,
-        "email": "user@example.com",
-        "createdAt": "2026-09-11T16:00:00.000Z",
-        "updatedAt": "2026-09-11T16:00:00.000Z"
+  - **Responses:**
+    - `200 OK`:
+      ```json
+      {
+        "user": {
+          "id": 1,
+          "email": "user@example.com",
+          "createdAt": "2026-09-11T16:00:00.000Z",
+          "updatedAt": "2026-09-11T16:00:00.000Z"
+        }
       }
-    }
-    ```
+      ```
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Invalid, corrupted, or expired token.
 
 ---
 
@@ -149,28 +155,32 @@ JWT_EXPIRES_IN=7d
 - **`GET /notes`**
   - **Auth:** Bearer Token required
   - **Header:** `Authorization: Bearer <token>`
-  - **Response (200 OK):**
-    ```json
-    {
-      "notes": [
-        {
-          "id": 1,
-          "user_id": 1,
-          "title": "Meeting Notes",
-          "content": "Discuss project milestones",
-          "created_at": "2026-09-11T16:00:00.000Z",
-          "updated_at": "2026-09-11T16:00:00.000Z"
-        }
-      ]
-    }
-    ```
+  - **Responses:**
+    - `200 OK`:
+      ```json
+      {
+        "notes": [
+          {
+            "id": 1,
+            "user_id": 1,
+            "title": "Meeting Notes",
+            "content": "Discuss project milestones",
+            "created_at": "2026-09-11T16:00:00.000Z",
+            "updated_at": "2026-09-11T16:00:00.000Z"
+          }
+        ]
+      }
+      ```
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Invalid, corrupted, or expired token.
 
 - **`GET /notes/:id`**
   - **Auth:** Bearer Token required
   - **Responses:**
     - `200 OK`: Returns the requested note object.
-    - `400 Bad Request`: Non-numeric ID format.
-    - `403 Forbidden`: Note belongs to a different user.
+    - `400 Bad Request`: Non-numeric or invalid ID format.
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Invalid/expired token OR note belongs to a different user.
     - `404 Not Found`: Note does not exist.
 
 - **`POST /notes`**
@@ -184,7 +194,9 @@ JWT_EXPIRES_IN=7d
     ```
   - **Responses:**
     - `201 Created`: Note created successfully.
-    - `400 Bad Request`: Missing or empty title.
+    - `400 Bad Request`: Missing, empty, non-string, or title > 255 chars; or missing, empty, or non-string content.
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Invalid, corrupted, or expired token.
 
 - **`PUT /notes/:id`**
   - **Auth:** Bearer Token required
@@ -197,14 +209,16 @@ JWT_EXPIRES_IN=7d
     ```
   - **Responses:**
     - `200 OK`: Note updated successfully.
-    - `400 Bad Request`: Missing or empty title.
-    - `403 Forbidden`: Note belongs to another user.
+    - `400 Bad Request`: Invalid ID format; missing, empty, non-string, or title > 255 chars; or missing, empty, or non-string content.
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Invalid/expired token OR note belongs to another user.
     - `404 Not Found`: Note does not exist.
 
 - **`DELETE /notes/:id`**
   - **Auth:** Bearer Token required
   - **Responses:**
     - `200 OK`: `{"message": "Note deleted successfully."}`
-    - `400 Bad Request`: Non-numeric ID format.
-    - `403 Forbidden`: Note belongs to another user.
+    - `400 Bad Request`: Non-numeric or invalid ID format.
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Invalid/expired token OR note belongs to another user.
     - `404 Not Found`: Note does not exist.
