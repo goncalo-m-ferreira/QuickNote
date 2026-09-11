@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">QuickNote</string>
+    <string name="main_title">As minhas notas</string>
+    <string name="empty_notes_message">Ainda não existem notas.</string>
+    <string name="new_note">Nova nota</string>
+    <string name="editor_new_note_title">Nova nota</string>
+    <string name="editor_edit_note_title">Editar nota</string>
+    <string name="note_title_hint">Título</string>
+    <string name="note_content_hint">Escreva a sua nota...</string>
+    <string name="save_note">Guardar nota</string>
+    <string name="delete_note">Eliminar nota</string>
+    <string name="note_not_found">Nota não encontrada.</string>
+    <string name="note_title_required">Introduza um título.</string>
+    <string name="note_content_required">Introduza o conteúdo da nota.</string>
+    <string name="delete_note_confirmation">Tem a certeza de que pretende eliminar esta nota?</string>
+    <string name="cancel">Cancelar</string>
+    <string name="note_deleted">Nota eliminada.</string>
+    <string name="note_saved">Nota guardada.</string>
 </resources>
