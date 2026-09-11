@@ -1,5 +1,11 @@
 const NoteModel = require('../models/noteModel');
 
+const NOTE_ID_REGEX = /^[1-9]\d*$/;
+
+function isValidNoteId(idParam) {
+  return typeof idParam === 'string' && NOTE_ID_REGEX.test(idParam);
+}
+
 const NoteController = {
   async getAll(req, res) {
     try {
@@ -13,10 +19,10 @@ const NoteController = {
 
   async getById(req, res) {
     try {
-      const noteId = parseInt(req.params.id, 10);
-      if (isNaN(noteId)) {
+      if (!isValidNoteId(req.params.id)) {
         return res.status(400).json({ error: 'Invalid note ID format.' });
       }
+      const noteId = parseInt(req.params.id, 10);
 
       const note = await NoteModel.findById(noteId);
       if (!note) {
@@ -43,10 +49,18 @@ const NoteController = {
         return res.status(400).json({ error: 'Note title is required.' });
       }
 
+      if (title.trim().length > 255) {
+        return res.status(400).json({ error: 'Note title must not exceed 255 characters.' });
+      }
+
+      if (!content || typeof content !== 'string' || content.trim() === '') {
+        return res.status(400).json({ error: 'Note content is required.' });
+      }
+
       const newNote = await NoteModel.create(
         req.user.userId,
-        title,
-        content !== undefined && content !== null ? String(content) : ''
+        title.trim(),
+        content.trim()
       );
 
       return res.status(201).json({
@@ -61,10 +75,10 @@ const NoteController = {
 
   async update(req, res) {
     try {
-      const noteId = parseInt(req.params.id, 10);
-      if (isNaN(noteId)) {
+      if (!isValidNoteId(req.params.id)) {
         return res.status(400).json({ error: 'Invalid note ID format.' });
       }
+      const noteId = parseInt(req.params.id, 10);
 
       const note = await NoteModel.findById(noteId);
       if (!note) {
@@ -77,15 +91,24 @@ const NoteController = {
       }
 
       const { title, content } = req.body;
+
       if (!title || typeof title !== 'string' || title.trim() === '') {
         return res.status(400).json({ error: 'Note title is required.' });
+      }
+
+      if (title.trim().length > 255) {
+        return res.status(400).json({ error: 'Note title must not exceed 255 characters.' });
+      }
+
+      if (!content || typeof content !== 'string' || content.trim() === '') {
+        return res.status(400).json({ error: 'Note content is required.' });
       }
 
       const updatedNote = await NoteModel.update(
         noteId,
         req.user.userId,
-        title,
-        content !== undefined && content !== null ? String(content) : ''
+        title.trim(),
+        content.trim()
       );
 
       return res.status(200).json({
@@ -100,10 +123,10 @@ const NoteController = {
 
   async delete(req, res) {
     try {
-      const noteId = parseInt(req.params.id, 10);
-      if (isNaN(noteId)) {
+      if (!isValidNoteId(req.params.id)) {
         return res.status(400).json({ error: 'Invalid note ID format.' });
       }
+      const noteId = parseInt(req.params.id, 10);
 
       const note = await NoteModel.findById(noteId);
       if (!note) {

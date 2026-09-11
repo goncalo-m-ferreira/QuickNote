@@ -39,11 +39,18 @@ app.use(errorHandler);
 // Server bootstrap with database initialization
 async function startServer() {
   try {
-    if (process.env.DATABASE_URL) {
-      await initDb();
-    } else {
-      console.warn('DATABASE_URL not found in environment. Skipping database initialization.');
+    const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
+    const missingEnvVars = requiredEnvVars.filter(
+      (name) => !process.env[name] || process.env[name].trim() === ''
+    );
+
+    if (missingEnvVars.length > 0) {
+      throw new Error(
+        `Missing required environment variables: ${missingEnvVars.join(', ')}`
+      );
     }
+
+    await initDb();
 
     app.listen(PORT, () => {
       console.log(`QuickNote API running on port ${PORT}`);

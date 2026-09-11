@@ -33,7 +33,7 @@ const AuthController = {
 
       const newUser = await UserModel.create(trimmedEmail, passwordHash);
 
-      const jwtSecret = process.env.JWT_SECRET || 'fallback_jwt_secret';
+      const jwtSecret = process.env.JWT_SECRET;
       const token = jwt.sign(
         { userId: newUser.id, email: newUser.email },
         jwtSecret,
@@ -75,7 +75,7 @@ const AuthController = {
         return res.status(401).json({ error: 'Invalid email or password.' });
       }
 
-      const jwtSecret = process.env.JWT_SECRET || 'fallback_jwt_secret';
+      const jwtSecret = process.env.JWT_SECRET;
       const token = jwt.sign(
         { userId: user.id, email: user.email },
         jwtSecret,

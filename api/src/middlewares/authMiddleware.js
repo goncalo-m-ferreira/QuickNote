@@ -13,7 +13,7 @@ function authenticateToken(req, res, next) {
   }
 
   const token = parts[1];
-  const jwtSecret = process.env.JWT_SECRET || 'fallback_jwt_secret';
+  const jwtSecret = process.env.JWT_SECRET;
 
   jwt.verify(token, jwtSecret, (err, decoded) => {
     if (err) {
