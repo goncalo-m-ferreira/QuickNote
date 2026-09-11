@@ -53,4 +53,13 @@
     <string name="error_confirm_password_required">Confirme a palavra-passe.</string>
     <string name="error_password_too_short">A palavra-passe deve ter pelo menos 6 caracteres.</string>
     <string name="error_passwords_do_not_match">As palavras-passe não coincidem.</string>
+    <string name="logging_in">A entrar...</string>
+    <string name="registering">A criar conta...</string>
+    <string name="error_invalid_data">Dados inválidos. Verifique os campos.</string>
+    <string name="error_invalid_credentials">Email ou palavra-passe incorretos.</string>
+    <string name="error_access_denied">Acesso recusado.</string>
+    <string name="error_email_already_registered">Já existe uma conta com este email.</string>
+    <string name="error_server">Erro no servidor. Tente novamente mais tarde.</string>
+    <string name="error_connection">Sem ligação à internet ou à API. Tente novamente.</string>
+    <string name="error_unknown">Ocorreu um erro inesperado. Tente novamente.</string>
 </resources>

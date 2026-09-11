@@ -4,10 +4,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import pt.goncalomferreira.quicknote.auth.SessionManager
+import pt.goncalomferreira.quicknote.network.ApiClient
+import pt.goncalomferreira.quicknote.network.AuthRequest
+import java.io.IOException
 
 class LoginActivity : AppCompatActivity() {
 
@@ -17,10 +24,14 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var buttonGoToRegister: Button
     private lateinit var buttonLoginAbout: Button
 
+    private lateinit var sessionManager: SessionManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_login)
+
+        sessionManager = SessionManager(this)
 
         // Ajusta o conteúdo da Activity às barras do sistema.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -54,7 +65,7 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Validação local no clique do botão Entrar
+        // Validação local e autenticação real no clique do botão Entrar
         buttonLogin.setOnClickListener {
             val email = editTextLoginEmail.text.toString().trim()
             val password = editTextLoginPassword.text.toString()
@@ -78,7 +89,68 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Não autentica nem navega para a MainActivity nesta fase
+            // Desativa botões e altera texto enquanto o pedido está em curso
+            setControlsEnabled(false)
+            buttonLogin.text = getString(R.string.logging_in)
+
+            lifecycleScope.launch {
+                try {
+                    val response = ApiClient.apiService.login(
+                        AuthRequest(email = email, password = password)
+                    )
+
+                    if (response.isSuccessful) {
+                        val authResponse = response.body()
+                        val token = authResponse?.token
+
+                        if (!token.isNullOrBlank()) {
+                            sessionManager.saveToken(token)
+
+                            val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                            return@launch
+                        } else {
+                            Toast.makeText(
+                                this@LoginActivity,
+                                getString(R.string.error_unknown),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        val errorMsg = when (response.code()) {
+                            400 -> getString(R.string.error_invalid_data)
+                            401 -> getString(R.string.error_invalid_credentials)
+                            403 -> getString(R.string.error_access_denied)
+                            in 500..599 -> getString(R.string.error_server)
+                            else -> getString(R.string.error_unknown)
+                        }
+                        Toast.makeText(this@LoginActivity, errorMsg, Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: IOException) {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        getString(R.string.error_connection),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        getString(R.string.error_unknown),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                // Restaura o estado dos botões após erro
+                setControlsEnabled(true)
+                buttonLogin.text = getString(R.string.login_button)
+            }
         }
+    }
+
+    private fun setControlsEnabled(enabled: Boolean) {
+        buttonLogin.isEnabled = enabled
+        buttonGoToRegister.isEnabled = enabled
+        buttonLoginAbout.isEnabled = enabled
     }
 }
