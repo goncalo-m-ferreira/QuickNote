@@ -21,13 +21,28 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import pt.goncalomferreira.quicknote.auth.SessionManager
 import pt.goncalomferreira.quicknote.data.AppDatabase
+import pt.goncalomferreira.quicknote.data.NoteDao
 import pt.goncalomferreira.quicknote.model.Note
+import pt.goncalomferreira.quicknote.network.ApiClient
+import pt.goncalomferreira.quicknote.network.ApiNoteMapper
+import pt.goncalomferreira.quicknote.network.NoteRequest
+import java.io.IOException
 
 class NoteEditActivity : AppCompatActivity() {
 
     private var speechRecognizer: SpeechRecognizer? = null
     private lateinit var editTextConteudo: EditText
+    private lateinit var editTextTitulo: EditText
+    private lateinit var buttonGuardar: Button
+    private lateinit var buttonEliminar: Button
+    private lateinit var buttonDitado: Button
+
+    private lateinit var sessionManager: SessionManager
+    private lateinit var noteDao: NoteDao
+
+    private var existingNote: Note? = null
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -45,6 +60,17 @@ class NoteEditActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        sessionManager = SessionManager(this)
+
+        val authHeader = sessionManager.getAuthorizationHeader()
+        val ownerEmail = sessionManager.getUserEmail()
+
+        if (authHeader == null || ownerEmail.isNullOrBlank()) {
+            redirectToLogin()
+            return
+        }
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_note_edit)
 
@@ -62,35 +88,33 @@ class NoteEditActivity : AppCompatActivity() {
             insets
         }
 
-        // Referencias aos campos utilizados para criar uma nota.
-        val editTextTitulo = findViewById<EditText>(R.id.editTextTitulo)
+        // Referencias aos campos utilizados para criar/editar uma nota.
+        editTextTitulo = findViewById(R.id.editTextTitulo)
         editTextConteudo = findViewById(R.id.editTextConteudo)
-        val buttonGuardar = findViewById<Button>(R.id.buttonGuardar)
-        val buttonEliminar = findViewById<Button>(R.id.buttonEliminar)
-        val buttonDitado = findViewById<Button>(R.id.buttonDitado)
+        buttonGuardar = findViewById(R.id.buttonGuardar)
+        buttonEliminar = findViewById(R.id.buttonEliminar)
+        buttonDitado = findViewById(R.id.buttonDitado)
 
         buttonDitado.setOnClickListener {
             checkSpeechAndStart()
         }
 
         // Obtem o DAO atraves da instancia unica da base de dados Room.
-        val noteDao = AppDatabase
+        noteDao = AppDatabase
             .getDatabase(applicationContext)
             .noteDao()
 
         val noteId = intent.getLongExtra("NOTE_ID", -1L)
-        var existingNote: Note? = null
 
         // Verifica se o editor foi aberto para criar ou editar uma nota.
         if (noteId != -1L) {
             buttonGuardar.isEnabled = false
 
             lifecycleScope.launch {
-                existingNote = noteDao.getById(noteId)
+                val loadedNote = noteDao.getById(noteId)
+                existingNote = loadedNote
 
-                val note = existingNote
-
-                if (note == null) {
+                if (loadedNote == null) {
                     Toast.makeText(
                         this@NoteEditActivity,
                         getString(R.string.note_not_found),
@@ -101,8 +125,8 @@ class NoteEditActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                editTextTitulo.setText(note.title)
-                editTextConteudo.setText(note.content)
+                editTextTitulo.setText(loadedNote.title)
+                editTextConteudo.setText(loadedNote.content)
 
                 findViewById<TextView>(R.id.textViewEditorTitulo).text =
                     getString(R.string.editor_edit_note_title)
@@ -112,32 +136,30 @@ class NoteEditActivity : AppCompatActivity() {
             }
         }
 
-        // Pede confirmacao antes de eliminar definitivamente a nota.
+        // Pede confirmacao antes de eliminar a nota na API e no Room.
         buttonEliminar.setOnClickListener {
             val note = existingNote ?: return@setOnClickListener
+
+            if (note.remoteId == null || note.ownerEmail == Note.LEGACY_OWNER) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.error_legacy_note_operation),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
 
             AlertDialog.Builder(this)
                 .setTitle(R.string.delete_note)
                 .setMessage(R.string.delete_note_confirmation)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.delete_note) { _, _ ->
-                    lifecycleScope.launch {
-                        noteDao.delete(note)
-
-                        Toast.makeText(
-                            this@NoteEditActivity,
-                            getString(R.string.note_deleted),
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        finish()
-                    }
+                    deleteNoteFromApiAndRoom(authHeader, note)
                 }
                 .show()
         }
 
         buttonGuardar.setOnClickListener {
-
             val titulo = editTextTitulo.text.toString().trim()
             val conteudo = editTextConteudo.text.toString().trim()
 
@@ -152,36 +174,255 @@ class NoteEditActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Atualiza a nota existente ou cria uma nova nota.
-            lifecycleScope.launch {
-                val note = existingNote
-
-                if (note == null) {
-                    noteDao.insert(
-                        Note(
-                            title = titulo,
-                            content = conteudo
-                        )
-                    )
-                } else {
-                    noteDao.update(
-                        note.copy(
-                            title = titulo,
-                            content = conteudo,
-                            updatedAt = System.currentTimeMillis()
-                        )
-                    )
+            val note = existingNote
+            if (note == null) {
+                createNoteInApiAndRoom(authHeader, ownerEmail, titulo, conteudo)
+            } else {
+                if (note.remoteId == null || note.ownerEmail == Note.LEGACY_OWNER) {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.error_legacy_note_operation),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
                 }
-
-                Toast.makeText(
-                    this@NoteEditActivity,
-                    getString(R.string.note_saved),
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                finish()
+                updateNoteInApiAndRoom(authHeader, ownerEmail, note, titulo, conteudo)
             }
         }
+    }
+
+    private fun setUiEnabled(enabled: Boolean) {
+        buttonGuardar.isEnabled = enabled
+        buttonEliminar.isEnabled = enabled
+        buttonDitado.isEnabled = enabled
+    }
+
+    private fun createNoteInApiAndRoom(
+        authHeader: String,
+        ownerEmail: String,
+        titulo: String,
+        conteudo: String
+    ) {
+        setUiEnabled(false)
+
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.apiService.createNote(
+                    authHeader,
+                    NoteRequest(titulo, conteudo)
+                )
+
+                if (response.isSuccessful) {
+                    val apiNote = response.body()?.note
+                    val noteToInsert = if (apiNote != null) {
+                        ApiNoteMapper.toEntity(apiNote, ownerEmail)
+                    } else null
+
+                    if (noteToInsert != null) {
+                        noteDao.insert(noteToInsert)
+                        Toast.makeText(
+                            this@NoteEditActivity,
+                            getString(R.string.note_saved),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
+                    } else {
+                        Toast.makeText(
+                            this@NoteEditActivity,
+                            getString(R.string.error_save_note),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        setUiEnabled(true)
+                    }
+                } else {
+                    when (response.code()) {
+                        400 -> {
+                            Toast.makeText(
+                                this@NoteEditActivity,
+                                getString(R.string.error_invalid_data),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            setUiEnabled(true)
+                        }
+                        401, 403 -> redirectToLogin()
+                        else -> {
+                            Toast.makeText(
+                                this@NoteEditActivity,
+                                getString(R.string.error_server),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            setUiEnabled(true)
+                        }
+                    }
+                }
+            } catch (_: IOException) {
+                Toast.makeText(
+                    this@NoteEditActivity,
+                    getString(R.string.error_save_note_connection),
+                    Toast.LENGTH_SHORT
+                ).show()
+                setUiEnabled(true)
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this@NoteEditActivity,
+                    getString(R.string.error_save_note),
+                    Toast.LENGTH_SHORT
+                ).show()
+                setUiEnabled(true)
+            }
+        }
+    }
+
+    private fun updateNoteInApiAndRoom(
+        authHeader: String,
+        ownerEmail: String,
+        currentNote: Note,
+        titulo: String,
+        conteudo: String
+    ) {
+        val remoteId = currentNote.remoteId ?: return
+        setUiEnabled(false)
+
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.apiService.updateNote(
+                    authHeader,
+                    remoteId,
+                    NoteRequest(titulo, conteudo)
+                )
+
+                if (response.isSuccessful) {
+                    val apiNote = response.body()?.note
+                    val noteToUpdate = if (apiNote != null) {
+                        ApiNoteMapper.toEntity(apiNote, ownerEmail, localId = currentNote.id)
+                    } else null
+
+                    if (noteToUpdate != null) {
+                        noteDao.update(noteToUpdate)
+                        Toast.makeText(
+                            this@NoteEditActivity,
+                            getString(R.string.note_saved),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
+                    } else {
+                        Toast.makeText(
+                            this@NoteEditActivity,
+                            getString(R.string.error_save_note),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        setUiEnabled(true)
+                    }
+                } else {
+                    when (response.code()) {
+                        404 -> {
+                            Toast.makeText(
+                                this@NoteEditActivity,
+                                getString(R.string.error_note_not_found_server),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            noteDao.delete(currentNote)
+                            finish()
+                        }
+                        400 -> {
+                            Toast.makeText(
+                                this@NoteEditActivity,
+                                getString(R.string.error_invalid_data),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            setUiEnabled(true)
+                        }
+                        401, 403 -> redirectToLogin()
+                        else -> {
+                            Toast.makeText(
+                                this@NoteEditActivity,
+                                getString(R.string.error_server),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            setUiEnabled(true)
+                        }
+                    }
+                }
+            } catch (_: IOException) {
+                Toast.makeText(
+                    this@NoteEditActivity,
+                    getString(R.string.error_save_note_connection),
+                    Toast.LENGTH_SHORT
+                ).show()
+                setUiEnabled(true)
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this@NoteEditActivity,
+                    getString(R.string.error_save_note),
+                    Toast.LENGTH_SHORT
+                ).show()
+                setUiEnabled(true)
+            }
+        }
+    }
+
+    private fun deleteNoteFromApiAndRoom(authHeader: String, currentNote: Note) {
+        val remoteId = currentNote.remoteId ?: return
+        setUiEnabled(false)
+
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.apiService.deleteNote(
+                    authHeader,
+                    remoteId
+                )
+
+                if (response.isSuccessful || response.code() == 404) {
+                    noteDao.delete(currentNote)
+
+                    val message = if (response.code() == 404) {
+                        getString(R.string.error_note_not_found_server)
+                    } else {
+                        getString(R.string.note_deleted)
+                    }
+
+                    Toast.makeText(
+                        this@NoteEditActivity,
+                        message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    finish()
+                } else if (response.code() == 401 || response.code() == 403) {
+                    redirectToLogin()
+                } else {
+                    Toast.makeText(
+                        this@NoteEditActivity,
+                        getString(R.string.error_delete_note),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    setUiEnabled(true)
+                }
+            } catch (_: IOException) {
+                Toast.makeText(
+                    this@NoteEditActivity,
+                    getString(R.string.error_delete_note_connection),
+                    Toast.LENGTH_SHORT
+                ).show()
+                setUiEnabled(true)
+            } catch (_: Exception) {
+                Toast.makeText(
+                    this@NoteEditActivity,
+                    getString(R.string.error_delete_note),
+                    Toast.LENGTH_SHORT
+                ).show()
+                setUiEnabled(true)
+            }
+        }
+    }
+
+    private fun redirectToLogin() {
+        sessionManager.clearSession()
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 
     private fun checkSpeechAndStart() {
@@ -263,7 +504,7 @@ class NoteEditActivity : AppCompatActivity() {
             }
 
             speechRecognizer?.startListening(intent)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             if (!isFinishing && !isDestroyed) {
                 Toast.makeText(
                     this,

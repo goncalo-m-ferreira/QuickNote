@@ -68,4 +68,12 @@
     <string name="checking_session">A verificar sessão...</string>
     <string name="logging_out">A terminar sessão...</string>
     <string name="error_session_validation">Não foi possível validar a sessão. Verifique a ligação.</string>
+    <string name="error_connection_showing_cache">Sem ligação. A mostrar as notas guardadas neste dispositivo.</string>
+    <string name="error_fetch_notes">Não foi possível atualizar as notas.</string>
+    <string name="error_save_note_connection">Sem ligação. Não foi possível guardar a alteração.</string>
+    <string name="error_delete_note_connection">Sem ligação. Não foi possível eliminar a nota.</string>
+    <string name="error_note_not_found_server">Esta nota já não existe no servidor.</string>
+    <string name="error_save_note">Não foi possível guardar a nota.</string>
+    <string name="error_delete_note">Não foi possível eliminar a nota.</string>
+    <string name="error_legacy_note_operation">Não é possível alterar notas guardadas no formato antigo.</string>
 </resources>

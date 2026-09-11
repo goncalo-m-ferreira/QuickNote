@@ -5,6 +5,7 @@ import androidx.room3.Delete
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import androidx.room3.Transaction
 import androidx.room3.Update
 import pt.goncalomferreira.quicknote.model.Note
 
@@ -47,4 +48,16 @@ interface NoteDao {
     // Insere ou substitui varias notas no cache.
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(notes: List<Note>)
+
+    // Substitui todo o cache local de um determinado utilizador de forma transacional.
+    @Transaction
+    suspend fun replaceCacheForOwner(
+        ownerEmail: String,
+        notes: List<Note>
+    ) {
+        deleteByOwnerEmail(ownerEmail)
+        if (notes.isNotEmpty()) {
+            insertAll(notes)
+        }
+    }
 }
