@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const { initDb } = require('./db');
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,8 +21,9 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Authentication routes
+// Authentication and User routes
 app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
 
 // Fallback route for unhandled endpoints
 app.use((req, res) => {
