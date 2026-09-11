@@ -5,6 +5,7 @@ const { initDb } = require('./db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const noteRoutes = require('./routes/noteRoutes');
+const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,15 +23,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Routes
+// Application routes
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/notes', noteRoutes);
 
-// Fallback route for unhandled endpoints
+// 404 Fallback for unmatched routes
 app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
+  res.status(404).json({ error: 'Endpoint not found.' });
 });
+
+// Centralized error handling middleware
+app.use(errorHandler);
 
 // Server bootstrap with database initialization
 async function startServer() {
