@@ -13,15 +13,18 @@ class AboutActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_about)
 
-        // Ajusta o conteudo da Activity as barras do sistema.
+        // Ajusta o conteúdo da Activity às barras do sistema preservando as margens da aplicação.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val density = resources.displayMetrics.density
+            val basePaddingHorizontal = (20 * density).toInt()
+            val basePaddingVertical = (16 * density).toInt()
 
             v.setPadding(
-                systemBars.left,
-                systemBars.top,
-                systemBars.right,
-                systemBars.bottom
+                systemBars.left + basePaddingHorizontal,
+                systemBars.top + basePaddingVertical,
+                systemBars.right + basePaddingHorizontal,
+                systemBars.bottom + basePaddingVertical
             )
 
             insets
