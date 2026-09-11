@@ -16,6 +16,11 @@
     <string name="cancel">Cancelar</string>
     <string name="note_deleted">Nota eliminada.</string>
     <string name="note_saved">Nota guardada.</string>
+    <string name="note_dictate">Ditar</string>
+    <string name="listening">A ouvir...</string>
+    <string name="microphone_permission_required">Permissão de microfone necessária.</string>
+    <string name="speech_not_available">Reconhecimento de voz indisponível.</string>
+    <string name="speech_recognition_error">Não foi possível reconhecer a voz.</string>
     <string name="about_title">Sobre</string>
     <string name="about_course_label">Curso</string>
     <string name="about_course">Licenciatura em Eng. Informática</string>
