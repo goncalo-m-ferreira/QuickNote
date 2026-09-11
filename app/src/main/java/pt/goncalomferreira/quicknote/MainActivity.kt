@@ -2,6 +2,7 @@ package pt.goncalomferreira.quicknote
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -9,7 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import pt.goncalomferreira.quicknote.adapter.NoteAdapter
 import pt.goncalomferreira.quicknote.data.AppDatabase
 import pt.goncalomferreira.quicknote.data.NoteDao
 
@@ -17,6 +21,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var noteDao: NoteDao
     private lateinit var textViewSemNotas: TextView
+    private lateinit var recyclerViewNotas: RecyclerView
+    private lateinit var noteAdapter: NoteAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +44,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         textViewSemNotas = findViewById(R.id.textViewSemNotas)
+        recyclerViewNotas = findViewById(R.id.recyclerViewNotas)
+
+        // Configura a lista que apresenta as notas guardadas.
+        noteAdapter = NoteAdapter()
+        recyclerViewNotas.layoutManager = LinearLayoutManager(this)
+        recyclerViewNotas.adapter = noteAdapter
 
         // Obtem o DAO atraves da instancia unica da base de dados Room.
         noteDao = AppDatabase
@@ -61,11 +73,14 @@ class MainActivity : AppCompatActivity() {
             val notas = noteDao.getAll()
 
             if (notas.isEmpty()) {
+                recyclerViewNotas.visibility = View.GONE
+                textViewSemNotas.visibility = View.VISIBLE
                 textViewSemNotas.text = "Ainda não existem notas."
             } else {
-                textViewSemNotas.text = notas.joinToString(separator = "\n\n") { nota ->
-                    nota.title
-                }
+                textViewSemNotas.visibility = View.GONE
+                recyclerViewNotas.visibility = View.VISIBLE
+
+                noteAdapter.submitList(notas)
             }
         }
     }
