@@ -6,80 +6,149 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
+    android:background="@color/quicknote_background"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="16dp"
     tools:context=".MainActivity">
 
+    <!-- Title -->
     <TextView
         android:id="@+id/textViewTitulo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:text="@string/main_title"
+        android:textColor="@color/quicknote_text_primary"
         android:textSize="28sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/buttonSobre"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/buttonSobre"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/about_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
+    <!-- Account session identification (discreet) -->
     <TextView
         android:id="@+id/textViewUser"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="@id/buttonLogout"
-        app:layout_constraintEnd_toStartOf="@id/buttonLogout"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/quicknote_text_secondary"
+        android:textSize="13sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/buttonLogout"
+        app:layout_constraintTop_toBottomOf="@id/textViewTitulo"
         tools:text="Sessão: utilizador@example.com" />
 
-    <Button
-        android:id="@+id/buttonLogout"
-        android:layout_width="wrap_content"
+    <!-- Secondary actions (Sobre / Terminar sessão) -->
+    <LinearLayout
+        android:id="@+id/layoutHeaderButtons"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/logout_button"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonSobre" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewUser">
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonSobre"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:text="@string/about_button"
+            android:textColor="@color/quicknote_green_action"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonLogout"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:text="@string/logout_button"
+            android:textColor="@color/quicknote_error"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <!-- Search Bar -->
+    <EditText
+        android:id="@+id/editTextSearch"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_search_input"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="12dp"
+        android:drawableTint="@color/quicknote_text_secondary"
+        android:hint="@string/search_hint"
+        android:imeOptions="actionSearch"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:paddingHorizontal="16dp"
+        android:singleLine="true"
+        android:textColor="@color/quicknote_text_primary"
+        android:textColorHint="@color/quicknote_text_secondary"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutHeaderButtons"
+        app:layout_constraintWidth_max="480dp" />
+
+    <!-- RecyclerView of Notes -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewNotas"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/buttonNovaNota"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonLogout"
-        tools:listitem="@android:layout/simple_list_item_1" />
+        app:layout_constraintTop_toBottomOf="@id/editTextSearch"
+        tools:listitem="@layout/item_note" />
 
+    <!-- Empty State -->
     <TextView
         android:id="@+id/textViewSemNotas"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:gravity="center"
         android:text="@string/empty_notes_message"
+        android:textColor="@color/quicknote_text_secondary"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/editTextSearch" />
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+    <!-- Primary Action: Button Nova Nota -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonNovaNota"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:text="@string/new_note"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:paddingHorizontal="24dp"
+        android:text="@string/new_note_button"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:backgroundTint="@color/quicknote_green_action"
+        app:cornerRadius="28dp"
+        app:elevation="4dp"
+        app:icon="@drawable/ic_add"
+        app:iconTint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

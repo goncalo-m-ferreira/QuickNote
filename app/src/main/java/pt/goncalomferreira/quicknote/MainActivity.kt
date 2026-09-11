@@ -2,8 +2,11 @@ package pt.goncalomferreira.quicknote
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +21,7 @@ import pt.goncalomferreira.quicknote.adapter.NoteAdapter
 import pt.goncalomferreira.quicknote.auth.SessionManager
 import pt.goncalomferreira.quicknote.data.AppDatabase
 import pt.goncalomferreira.quicknote.data.NoteDao
+import pt.goncalomferreira.quicknote.model.Note
 import pt.goncalomferreira.quicknote.network.ApiClient
 import pt.goncalomferreira.quicknote.network.ApiNoteMapper
 import java.io.IOException
@@ -28,10 +32,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var noteDao: NoteDao
     private lateinit var textViewSemNotas: TextView
     private lateinit var recyclerViewNotas: RecyclerView
+    private lateinit var editTextSearch: EditText
     private lateinit var noteAdapter: NoteAdapter
     private lateinit var textViewUser: TextView
     private lateinit var buttonLogout: Button
 
+    private var allNotes: List<Note> = emptyList()
+    private var currentSearchQuery: String = ""
     private var isRefreshingNotes = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,15 +55,18 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        // Ajusta o conteúdo da Activity às barras do sistema.
+        // Ajusta o conteúdo da Activity às barras do sistema preservando as margens da aplicação.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val density = resources.displayMetrics.density
+            val basePaddingHorizontal = (20 * density).toInt()
+            val basePaddingVertical = (16 * density).toInt()
 
             v.setPadding(
-                systemBars.left,
-                systemBars.top,
-                systemBars.right,
-                systemBars.bottom
+                systemBars.left + basePaddingHorizontal,
+                systemBars.top + basePaddingVertical,
+                systemBars.right + basePaddingHorizontal,
+                systemBars.bottom + basePaddingVertical
             )
 
             insets
@@ -64,8 +74,19 @@ class MainActivity : AppCompatActivity() {
 
         textViewSemNotas = findViewById(R.id.textViewSemNotas)
         recyclerViewNotas = findViewById(R.id.recyclerViewNotas)
+        editTextSearch = findViewById(R.id.editTextSearch)
         textViewUser = findViewById(R.id.textViewUser)
         buttonLogout = findViewById(R.id.buttonLogout)
+
+        // Configuração do filtro de pesquisa local
+        editTextSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                currentSearchQuery = s?.toString()?.trim() ?: ""
+                applyFilter()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
 
         // Indicação visível do utilizador autenticado
         val email = sessionManager.getUserEmail()
@@ -110,7 +131,7 @@ class MainActivity : AppCompatActivity() {
             .getDatabase(applicationContext)
             .noteDao()
 
-        val buttonNovaNota = findViewById<Button>(R.id.buttonNovaNota)
+        val buttonNovaNota = findViewById<View>(R.id.buttonNovaNota)
 
         // Abre o ecrã de criação de uma nova nota.
         buttonNovaNota.setOnClickListener {
@@ -118,7 +139,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val buttonSobre = findViewById<Button>(R.id.buttonSobre)
+        val buttonSobre = findViewById<View>(R.id.buttonSobre)
 
         // Abre o ecrã com as informações sobre a aplicação.
         buttonSobre.setOnClickListener {
@@ -143,7 +164,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             var ownerEmail = sessionManager.getUserEmail()
 
-            // Se o email do utilizador nao estiver guardado na sessao, tenta obter via GET /users/me
+            // Se o email do utilizador não estiver guardado na sessão, tenta obter via GET /users/me
             if (ownerEmail.isNullOrBlank()) {
                 try {
                     val userResponse = ApiClient.apiService.getCurrentUser(authHeader)
@@ -190,16 +211,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun updateUIWithLocalCache(ownerEmail: String) {
-        val notas = noteDao.getByOwnerEmail(ownerEmail)
+        allNotes = noteDao.getByOwnerEmail(ownerEmail)
+        applyFilter()
+    }
 
-        if (notas.isEmpty()) {
+    private fun applyFilter() {
+        if (allNotes.isEmpty()) {
             recyclerViewNotas.visibility = View.GONE
             textViewSemNotas.visibility = View.VISIBLE
+            textViewSemNotas.text = getString(R.string.empty_notes_message)
+            return
+        }
+
+        val filteredList = if (currentSearchQuery.isBlank()) {
+            allNotes
+        } else {
+            allNotes.filter { note ->
+                note.title.contains(currentSearchQuery, ignoreCase = true) ||
+                        note.content.contains(currentSearchQuery, ignoreCase = true)
+            }
+        }
+
+        if (filteredList.isEmpty()) {
+            recyclerViewNotas.visibility = View.GONE
+            textViewSemNotas.visibility = View.VISIBLE
+            textViewSemNotas.text = getString(R.string.no_notes_found)
         } else {
             textViewSemNotas.visibility = View.GONE
             recyclerViewNotas.visibility = View.VISIBLE
-
-            noteAdapter.submitList(notas)
+            noteAdapter.submitList(filteredList)
         }
     }
 

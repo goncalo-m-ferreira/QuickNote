@@ -3,6 +3,9 @@
     <string name="main_title">As minhas notas</string>
     <string name="empty_notes_message">Ainda não existem notas.</string>
     <string name="new_note">Nova nota</string>
+    <string name="new_note_button">Nova nota</string>
+    <string name="search_hint">Pesquisar notas...</string>
+    <string name="no_notes_found">Nenhuma nota encontrada.</string>
     <string name="editor_new_note_title">Nova nota</string>
     <string name="editor_edit_note_title">Editar nota</string>
     <string name="note_title_hint">Título</string>
