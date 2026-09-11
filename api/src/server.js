@@ -4,6 +4,7 @@ require('dotenv').config();
 const { initDb } = require('./db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,9 +22,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Authentication and User routes
+// Routes
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
+app.use('/notes', noteRoutes);
 
 // Fallback route for unhandled endpoints
 app.use((req, res) => {
