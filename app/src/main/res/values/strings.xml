@@ -38,4 +38,19 @@
     <string name="about_technologies_label">Tecnologias e bibliotecas</string>
     <string name="about_technologies">Kotlin — JetBrains / kotlinlang.org\nAndroid SDK / AndroidX — Google / developer.android.com\nAppCompat — AndroidX / developer.android.com\nConstraintLayout — AndroidX / developer.android.com\nMaterial Components — Google / Material Components for Android\nRoom 3 — AndroidX / developer.android.com\nRecyclerView — AndroidX / developer.android.com\nLifecycle Runtime KTX — AndroidX / developer.android.com\nKSP (Kotlin Symbol Processing) — Google / github.com/google/ksp</string>
     <string name="about_button">Sobre</string>
+
+    <!-- Autenticação -->
+    <string name="login_title">Entrar</string>
+    <string name="login_button">Entrar</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Palavra-passe</string>
+    <string name="confirm_password_hint">Confirmar palavra-passe</string>
+    <string name="register_title">Criar conta</string>
+    <string name="no_account_question">Ainda não tem conta?</string>
+    <string name="already_have_account">Já tenho conta</string>
+    <string name="error_email_required">O email é obrigatório.</string>
+    <string name="error_password_required">A palavra-passe é obrigatória.</string>
+    <string name="error_confirm_password_required">Confirme a palavra-passe.</string>
+    <string name="error_password_too_short">A palavra-passe deve ter pelo menos 6 caracteres.</string>
+    <string name="error_passwords_do_not_match">As palavras-passe não coincidem.</string>
 </resources>
