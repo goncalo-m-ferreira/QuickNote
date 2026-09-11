@@ -69,6 +69,14 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, NoteEditActivity::class.java)
             startActivity(intent)
         }
+
+        val buttonSobre = findViewById<Button>(R.id.buttonSobre)
+
+        // Abre o ecra com as informacoes sobre a aplicacao.
+        buttonSobre.setOnClickListener {
+            val intent = Intent(this, AboutActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {

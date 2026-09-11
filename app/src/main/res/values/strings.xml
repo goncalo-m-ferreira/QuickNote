@@ -16,4 +16,21 @@
     <string name="cancel">Cancelar</string>
     <string name="note_deleted">Nota eliminada.</string>
     <string name="note_saved">Nota guardada.</string>
+    <string name="about_title">Sobre</string>
+    <string name="about_course_label">Curso</string>
+    <string name="about_course">Licenciatura em Eng. Informática</string>
+    <string name="about_subject_label">Unidade Curricular</string>
+    <string name="about_subject">Desenvolvimento de Aplicações Móveis</string>
+    <string name="about_academic_year_label">Ano Letivo</string>
+    <string name="about_academic_year">2025/26</string>
+    <string name="about_authors_label">Autores</string>
+    <string name="about_author_goncalo_name">Gonçalo Ferreira</string>
+    <string name="about_author_goncalo_number">N.º 23054</string>
+    <string name="about_author_pedro_name">Pedro Cortesão</string>
+    <string name="about_author_pedro_number">N.º 23373</string>
+    <string name="about_author_goncalo_photo">Fotografia de Gonçalo Ferreira</string>
+    <string name="about_author_pedro_photo">Fotografia de Pedro Cortesão</string>
+    <string name="about_technologies_label">Tecnologias e bibliotecas</string>
+    <string name="about_technologies">Kotlin — JetBrains / kotlinlang.org\nAndroid SDK / AndroidX — Google / developer.android.com\nAppCompat — AndroidX / developer.android.com\nConstraintLayout — AndroidX / developer.android.com\nMaterial Components — Google / Material Components for Android\nRoom 3 — AndroidX / developer.android.com\nRecyclerView — AndroidX / developer.android.com\nLifecycle Runtime KTX — AndroidX / developer.android.com\nKSP (Kotlin Symbol Processing) — Google / github.com/google/ksp</string>
+    <string name="about_button">Sobre</string>
 </resources>
