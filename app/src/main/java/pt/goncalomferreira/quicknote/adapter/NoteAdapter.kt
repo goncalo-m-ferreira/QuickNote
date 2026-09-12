@@ -7,6 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import pt.goncalomferreira.quicknote.R
 import pt.goncalomferreira.quicknote.model.Note
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // Liga a lista de notas aos cartoes apresentados no RecyclerView.
 class NoteAdapter(
@@ -14,11 +17,13 @@ class NoteAdapter(
 ) : RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
 
     private var notes: List<Note> = emptyList()
+    private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     // Guarda as referencias aos elementos visuais de cada nota.
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val title: TextView = itemView.findViewById(R.id.textViewNoteTitle)
         val content: TextView = itemView.findViewById(R.id.textViewNoteContent)
+        val date: TextView = itemView.findViewById(R.id.textViewNoteDate)
     }
 
     // Cria o layout visual de cada item da lista.
@@ -35,6 +40,7 @@ class NoteAdapter(
 
         holder.title.text = note.title
         holder.content.text = note.content
+        holder.date.text = dateFormat.format(Date(note.updatedAt))
 
         // Informa a Activity sobre a nota selecionada pelo utilizador.
         holder.itemView.setOnClickListener {

@@ -5,78 +5,158 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/quicknote_background"
     android:fillViewport="true"
     tools:context=".RegisterActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="24dp">
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="20dp">
 
+        <!-- Header: App Name -->
         <TextView
-            android:id="@+id/textViewRegisterTitle"
+            android:id="@+id/textViewRegisterAppName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/register_title"
-            android:textSize="28sp"
+            android:text="@string/app_name"
+            android:textColor="@color/quicknote_text_primary"
+            android:textSize="32sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Register Section Title -->
+        <TextView
+            android:id="@+id/textViewRegisterTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/register_title"
+            android:textColor="@color/quicknote_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewRegisterAppName"
+            app:layout_constraintWidth_max="480dp" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:id="@+id/textViewRegisterSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/register_subtitle"
+            android:textColor="@color/quicknote_text_secondary"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewRegisterTitle"
+            app:layout_constraintWidth_max="480dp" />
+
+        <!-- Input Email -->
         <EditText
             android:id="@+id/editTextRegisterEmail"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="20dp"
+            android:minHeight="52dp"
+            android:background="@drawable/bg_auth_input"
             android:hint="@string/email_hint"
+            android:importantForAutofill="no"
             android:inputType="textEmailAddress"
             android:maxLines="1"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:textColor="@color/quicknote_text_primary"
+            android:textColorHint="@color/quicknote_text_secondary"
+            android:textSize="15sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewRegisterTitle" />
+            app:layout_constraintTop_toBottomOf="@id/textViewRegisterSubtitle"
+            app:layout_constraintWidth_max="480dp" />
 
+        <!-- Input Password -->
         <EditText
             android:id="@+id/editTextRegisterPassword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
+            android:minHeight="52dp"
+            android:background="@drawable/bg_auth_input"
             android:hint="@string/password_hint"
+            android:importantForAutofill="no"
             android:inputType="textPassword"
             android:maxLines="1"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:textColor="@color/quicknote_text_primary"
+            android:textColorHint="@color/quicknote_text_secondary"
+            android:textSize="15sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/editTextRegisterEmail" />
+            app:layout_constraintTop_toBottomOf="@id/editTextRegisterEmail"
+            app:layout_constraintWidth_max="480dp" />
 
+        <!-- Input Confirm Password -->
         <EditText
             android:id="@+id/editTextRegisterConfirmPassword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
+            android:minHeight="52dp"
+            android:background="@drawable/bg_auth_input"
             android:hint="@string/confirm_password_hint"
+            android:importantForAutofill="no"
             android:inputType="textPassword"
             android:maxLines="1"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:textColor="@color/quicknote_text_primary"
+            android:textColorHint="@color/quicknote_text_secondary"
+            android:textSize="15sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/editTextRegisterPassword" />
+            app:layout_constraintTop_toBottomOf="@id/editTextRegisterPassword"
+            app:layout_constraintWidth_max="480dp" />
 
-        <Button
+        <!-- Register Button -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonRegister"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
+            android:minHeight="52dp"
             android:text="@string/register_title"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/quicknote_green_action"
+            app:cornerRadius="16dp"
+            app:elevation="2dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/editTextRegisterConfirmPassword" />
+            app:layout_constraintTop_toBottomOf="@id/editTextRegisterConfirmPassword"
+            app:layout_constraintWidth_max="480dp" />
 
-        <Button
+        <!-- Navigation back to Login -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonBackToLogin"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
             android:text="@string/already_have_account"
+            android:textColor="@color/quicknote_green_action"
+            android:textSize="15sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/buttonRegister" />

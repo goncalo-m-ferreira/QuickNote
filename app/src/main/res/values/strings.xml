@@ -3,6 +3,9 @@
     <string name="main_title">As minhas notas</string>
     <string name="empty_notes_message">Ainda não existem notas.</string>
     <string name="new_note">Nova nota</string>
+    <string name="new_note_button">Nova nota</string>
+    <string name="search_hint">Pesquisar notas...</string>
+    <string name="no_notes_found">Nenhuma nota encontrada.</string>
     <string name="editor_new_note_title">Nova nota</string>
     <string name="editor_edit_note_title">Editar nota</string>
     <string name="note_title_hint">Título</string>
@@ -21,9 +24,14 @@
     <string name="microphone_permission_required">Permissão de microfone necessária.</string>
     <string name="speech_not_available">Reconhecimento de voz indisponível.</string>
     <string name="speech_recognition_error">Não foi possível reconhecer a voz.</string>
+    <string name="back_button_desc">Voltar</string>
+
+    <!-- Sobre -->
     <string name="about_title">Sobre</string>
+    <string name="about_project_label">Projeto</string>
     <string name="about_course_label">Curso</string>
     <string name="about_course">Licenciatura em Eng. Informática</string>
+    <string name="about_course_full">Licenciatura em Engenharia Informática</string>
     <string name="about_subject_label">Unidade Curricular</string>
     <string name="about_subject">Desenvolvimento de Aplicações Móveis</string>
     <string name="about_academic_year_label">Ano Letivo</string>
@@ -36,12 +44,16 @@
     <string name="about_author_goncalo_photo">Fotografia de Gonçalo Ferreira</string>
     <string name="about_author_pedro_photo">Fotografia de Pedro Cortesão</string>
     <string name="about_technologies_label">Tecnologias e bibliotecas</string>
-    <string name="about_technologies">Kotlin — JetBrains / kotlinlang.org\nAndroid SDK / AndroidX — Google / developer.android.com\nAppCompat — AndroidX / developer.android.com\nConstraintLayout — AndroidX / developer.android.com\nMaterial Components — Google / Material Components for Android\nRoom 3 — AndroidX / developer.android.com\nRecyclerView — AndroidX / developer.android.com\nLifecycle Runtime KTX — AndroidX / developer.android.com\nKSP (Kotlin Symbol Processing) — Google / github.com/google/ksp</string>
+    <string name="about_references_label">Referências</string>
+    <string name="about_technologies">• Kotlin\n• Android SDK / AndroidX\n• AppCompat\n• ConstraintLayout\n• Material Components\n• Room\n• RecyclerView\n• Lifecycle Runtime KTX\n• KSP\n• Retrofit\n• Gson\n• Node.js &amp; Express\n• PostgreSQL / Neon\n• Render\n• bcryptjs, jsonwebtoken, pg, cors, dotenv</string>
+    <string name="about_references">Kotlin — JetBrains / kotlinlang.org\nAndroid / AndroidX — Google / developer.android.com\nAppCompat &amp; ConstraintLayout — AndroidX / developer.android.com\nMaterial Components — Google / material.io\nRoom 3 — AndroidX / developer.android.com\nRetrofit — Square\nGson — Google\nKSP — Google / github.com/google/ksp\nNode.js — OpenJS Foundation\nExpress — expressjs.com\nPostgreSQL — PostgreSQL Global Development Group\nNeon — neon.tech\nRender — render.com\nbcryptjs, jsonwebtoken, pg, cors, dotenv — npmjs.com</string>
     <string name="about_button">Sobre</string>
 
     <!-- Autenticação -->
     <string name="login_title">Entrar</string>
     <string name="login_button">Entrar</string>
+    <string name="login_tagline">Notas simples. Sempre consigo.</string>
+    <string name="register_subtitle">Crie a sua conta para sincronizar as notas.</string>
     <string name="email_hint">Email</string>
     <string name="password_hint">Palavra-passe</string>
     <string name="confirm_password_hint">Confirmar palavra-passe</string>
@@ -76,4 +88,7 @@
     <string name="error_save_note">Não foi possível guardar a nota.</string>
     <string name="error_delete_note">Não foi possível eliminar a nota.</string>
     <string name="error_legacy_note_operation">Não é possível alterar notas guardadas no formato antigo.</string>
+    <string name="account_dialog_title">Conta</string>
+    <string name="close">Fechar</string>
+    <string name="open_account_desc">Abrir conta</string>
 </resources>
