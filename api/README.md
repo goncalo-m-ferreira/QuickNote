@@ -12,6 +12,7 @@ Backend REST API for the QuickNote Android mobile application. Built with Node.j
 - **Password Hashing:** `bcryptjs` (Salt rounds: 10)
 - **Authentication:** Stateless JSON Web Tokens (`jsonwebtoken`)
 - **Cross-Origin Handling:** `cors`
+- **File Uploads:** `multer` (Memory storage, max 5MB)
 
 ---
 
@@ -221,4 +222,39 @@ JWT_EXPIRES_IN=7d
     - `400 Bad Request`: Non-numeric or invalid ID format.
     - `401 Unauthorized`: Missing or malformed `Authorization` header.
     - `403 Forbidden`: Invalid/expired token OR note belongs to another user.
+    - `404 Not Found`: Note does not exist.
+
+---
+
+### 5. Note Photos
+
+- **`PUT /notes/:id/photo`**
+  - **Auth:** Bearer Token required
+  - **Header:** `Authorization: Bearer <token>`, `Content-Type: multipart/form-data`
+  - **Form Field:** `photo` (File: JPEG, PNG, or WebP; max 5MB)
+  - **Responses:**
+    - `200 OK`: `{"message": "Photo uploaded successfully."}`
+    - `400 Bad Request`: Missing photo file, invalid file type, or invalid note ID format.
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Note belongs to another user.
+    - `404 Not Found`: Note does not exist.
+
+- **`GET /notes/:id/photo`**
+  - **Auth:** Bearer Token required
+  - **Header:** `Authorization: Bearer <token>`
+  - **Responses:**
+    - `200 OK`: Binary image data with matching `Content-Type` header (`image/jpeg`, `image/png`, or `image/webp`).
+    - `400 Bad Request`: Invalid note ID format.
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Note belongs to another user.
+    - `404 Not Found`: Note or photo does not exist.
+
+- **`DELETE /notes/:id/photo`**
+  - **Auth:** Bearer Token required
+  - **Header:** `Authorization: Bearer <token>`
+  - **Responses:**
+    - `200 OK`: `{"message": "Photo deleted successfully."}`
+    - `400 Bad Request`: Invalid note ID format.
+    - `401 Unauthorized`: Missing or malformed `Authorization` header.
+    - `403 Forbidden`: Note belongs to another user.
     - `404 Not Found`: Note does not exist.

@@ -61,6 +61,38 @@ const NoteModel = {
       [id, userId]
     );
     return result.rows[0] || null;
+  },
+
+  async updatePhoto(id, photoBuffer, mimeType) {
+    const result = await db.query(
+      `UPDATE notes
+       SET photo = $1, photo_mime_type = $2, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3
+       RETURNING id, user_id, title, content, created_at, updated_at`,
+      [photoBuffer, mimeType, id]
+    );
+    return result.rows[0] || null;
+  },
+
+  async getPhoto(id) {
+    const result = await db.query(
+      `SELECT photo, photo_mime_type, user_id
+       FROM notes
+       WHERE id = $1`,
+      [id]
+    );
+    return result.rows[0] || null;
+  },
+
+  async deletePhoto(id) {
+    const result = await db.query(
+      `UPDATE notes
+       SET photo = NULL, photo_mime_type = NULL, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1
+       RETURNING id, user_id, title, content, created_at, updated_at`,
+      [id]
+    );
+    return result.rows[0] || null;
   }
 };
 

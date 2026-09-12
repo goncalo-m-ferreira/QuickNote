@@ -3,6 +3,9 @@ package pt.goncalomferreira.quicknote
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -10,6 +13,7 @@ import android.speech.SpeechRecognizer
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -17,10 +21,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import pt.goncalomferreira.quicknote.auth.SessionManager
 import pt.goncalomferreira.quicknote.data.AppDatabase
 import pt.goncalomferreira.quicknote.data.NoteDao
@@ -28,6 +40,8 @@ import pt.goncalomferreira.quicknote.model.Note
 import pt.goncalomferreira.quicknote.network.ApiClient
 import pt.goncalomferreira.quicknote.network.ApiNoteMapper
 import pt.goncalomferreira.quicknote.network.NoteRequest
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 
 class NoteEditActivity : AppCompatActivity() {
@@ -39,10 +53,21 @@ class NoteEditActivity : AppCompatActivity() {
     private lateinit var buttonEliminar: Button
     private lateinit var buttonDitado: Button
 
+    private lateinit var buttonCamera: MaterialButton
+    private lateinit var cardPhotoPreview: MaterialCardView
+    private lateinit var imageViewPhotoPreview: ImageView
+    private lateinit var buttonRemovePhoto: MaterialButton
+
     private lateinit var sessionManager: SessionManager
     private lateinit var noteDao: NoteDao
 
     private var existingNote: Note? = null
+
+    // Photo state management
+    private var pendingPhotoUri: Uri? = null
+    private var pendingPhotoBytes: ByteArray? = null
+    private var hasExistingRemotePhoto: Boolean = false
+    private var photoMarkedForDeletion: Boolean = false
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -55,6 +80,44 @@ class NoteEditActivity : AppCompatActivity() {
                 getString(R.string.microphone_permission_required),
                 Toast.LENGTH_SHORT
             ).show()
+        }
+    }
+
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            val uri = pendingPhotoUri ?: return@registerForActivityResult
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val inputStream = contentResolver.openInputStream(uri)
+                    val originalBitmap = BitmapFactory.decodeStream(inputStream)
+                    inputStream?.close()
+
+                    if (originalBitmap != null) {
+                        val resizedBitmap = scaleBitmapDown(originalBitmap, 1024)
+                        val byteArrayOutputStream = ByteArrayOutputStream()
+                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
+                        val bytes = byteArrayOutputStream.toByteArray()
+
+                        pendingPhotoBytes = bytes
+                        photoMarkedForDeletion = false
+
+                        withContext(Dispatchers.Main) {
+                            imageViewPhotoPreview.setImageBitmap(resizedBitmap)
+                            cardPhotoPreview.visibility = View.VISIBLE
+                        }
+                    }
+                } catch (_: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@NoteEditActivity,
+                            getString(R.string.error_unknown),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
         }
     }
 
@@ -104,8 +167,39 @@ class NoteEditActivity : AppCompatActivity() {
         buttonEliminar = findViewById(R.id.buttonEliminar)
         buttonDitado = findViewById(R.id.buttonDitado)
 
+        buttonCamera = findViewById(R.id.buttonCamera)
+        cardPhotoPreview = findViewById(R.id.cardPhotoPreview)
+        imageViewPhotoPreview = findViewById(R.id.imageViewPhotoPreview)
+        buttonRemovePhoto = findViewById(R.id.buttonRemovePhoto)
+
         buttonDitado.setOnClickListener {
             checkSpeechAndStart()
+        }
+
+        buttonCamera.setOnClickListener {
+            try {
+                val tempFile = File(cacheDir, "temp_note_photo.jpg")
+                val uri = FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    tempFile
+                )
+                pendingPhotoUri = uri
+                takePictureLauncher.launch(uri)
+            } catch (_: Exception) {
+                Toast.makeText(this, getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        buttonRemovePhoto.setOnClickListener {
+            pendingPhotoBytes = null
+            pendingPhotoUri = null
+            if (hasExistingRemotePhoto) {
+                photoMarkedForDeletion = true
+                hasExistingRemotePhoto = false
+            }
+            imageViewPhotoPreview.setImageDrawable(null)
+            cardPhotoPreview.visibility = View.GONE
         }
 
         // Obtém o DAO através da instância única da base de dados Room.
@@ -140,6 +234,11 @@ class NoteEditActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.textViewEditorTitulo).text =
                     getString(R.string.editor_edit_note_title)
                 buttonEliminar.visibility = View.VISIBLE
+
+                val remoteId = loadedNote.remoteId
+                if (remoteId != null && loadedNote.ownerEmail != Note.LEGACY_OWNER) {
+                    loadRemotePhoto(authHeader, remoteId)
+                }
 
                 buttonGuardar.isEnabled = true
             }
@@ -200,10 +299,107 @@ class NoteEditActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadRemotePhoto(authHeader: String, remoteId: Long) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val response = ApiClient.apiService.getNotePhoto(authHeader, remoteId)
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody != null) {
+                        val inputStream = responseBody.byteStream()
+                        val bitmap = BitmapFactory.decodeStream(inputStream)
+                        inputStream.close()
+                        if (bitmap != null) {
+                            hasExistingRemotePhoto = true
+                            withContext(Dispatchers.Main) {
+                                imageViewPhotoPreview.setImageBitmap(bitmap)
+                                cardPhotoPreview.visibility = View.VISIBLE
+                            }
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+                // Keep cardPhotoPreview hidden if no photo or error
+            }
+        }
+    }
+
+    private suspend fun syncPhotoAfterSave(authHeader: String, remoteId: Long) {
+        if (photoMarkedForDeletion) {
+            try {
+                val response = ApiClient.apiService.deleteNotePhoto(authHeader, remoteId)
+                if (!response.isSuccessful && response.code() != 404) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@NoteEditActivity,
+                            getString(R.string.error_photo_delete),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (_: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@NoteEditActivity,
+                        getString(R.string.error_photo_delete),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        } else if (pendingPhotoBytes != null) {
+            val bytes = pendingPhotoBytes!!
+            try {
+                val mediaType = MediaType.parse("image/jpeg")
+                val requestBody = RequestBody.create(mediaType, bytes)
+                val part = MultipartBody.Part.createFormData("photo", "photo.jpg", requestBody)
+                val response = ApiClient.apiService.uploadNotePhoto(authHeader, remoteId, part)
+
+                if (!response.isSuccessful) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@NoteEditActivity,
+                            getString(R.string.error_photo_upload),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (_: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@NoteEditActivity,
+                        getString(R.string.error_photo_upload),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun scaleBitmapDown(bitmap: Bitmap, maxDimension: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        if (width <= maxDimension && height <= maxDimension) return bitmap
+
+        val ratio = width.toFloat() / height.toFloat()
+        val targetWidth: Int
+        val targetHeight: Int
+
+        if (width > height) {
+            targetWidth = maxDimension
+            targetHeight = (maxDimension / ratio).toInt()
+        } else {
+            targetHeight = maxDimension
+            targetWidth = (maxDimension * ratio).toInt()
+        }
+
+        return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+    }
+
     private fun setUiEnabled(enabled: Boolean) {
         buttonGuardar.isEnabled = enabled
         buttonEliminar.isEnabled = enabled
         buttonDitado.isEnabled = enabled
+        buttonCamera.isEnabled = enabled
     }
 
     private fun createNoteInApiAndRoom(
@@ -228,6 +424,11 @@ class NoteEditActivity : AppCompatActivity() {
                     } else null
 
                     if (noteToInsert != null) {
+                        val remoteId = apiNote?.id
+                        if (remoteId != null) {
+                            syncPhotoAfterSave(authHeader, remoteId)
+                        }
+
                         noteDao.insert(noteToInsert)
                         Toast.makeText(
                             this@NoteEditActivity,
@@ -307,6 +508,8 @@ class NoteEditActivity : AppCompatActivity() {
                     } else null
 
                     if (noteToUpdate != null) {
+                        syncPhotoAfterSave(authHeader, remoteId)
+
                         noteDao.update(noteToUpdate)
                         Toast.makeText(
                             this@NoteEditActivity,
