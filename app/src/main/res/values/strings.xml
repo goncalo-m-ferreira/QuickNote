@@ -88,4 +88,7 @@
     <string name="error_save_note">Não foi possível guardar a nota.</string>
     <string name="error_delete_note">Não foi possível eliminar a nota.</string>
     <string name="error_legacy_note_operation">Não é possível alterar notas guardadas no formato antigo.</string>
+    <string name="account_dialog_title">Conta</string>
+    <string name="close">Fechar</string>
+    <string name="open_account_desc">Abrir conta</string>
 </resources>

@@ -16,15 +16,39 @@
         android:paddingHorizontal="20dp"
         android:paddingVertical="16dp">
 
-        <!-- Title -->
-        <TextView
-            android:id="@+id/textViewAboutTitle"
+        <!-- Header: Back Button + Title -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/about_title"
-            android:textColor="@color/quicknote_text_primary"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonBack"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@string/back_button_desc"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:padding="0dp"
+                app:icon="@drawable/ic_arrow_back"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconSize="24dp"
+                app:iconTint="@color/quicknote_text_primary" />
+
+            <TextView
+                android:id="@+id/textViewAboutTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/about_title"
+                android:textColor="@color/quicknote_text_primary"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
 
         <!-- Card 1: Projeto -->
         <LinearLayout

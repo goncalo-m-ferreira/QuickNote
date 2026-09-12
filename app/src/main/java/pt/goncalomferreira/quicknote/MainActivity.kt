@@ -10,6 +10,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -34,7 +35,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerViewNotas: RecyclerView
     private lateinit var editTextSearch: EditText
     private lateinit var noteAdapter: NoteAdapter
-    private lateinit var textViewUser: TextView
     private lateinit var buttonLogout: Button
 
     private var allNotes: List<Note> = emptyList()
@@ -75,8 +75,13 @@ class MainActivity : AppCompatActivity() {
         textViewSemNotas = findViewById(R.id.textViewSemNotas)
         recyclerViewNotas = findViewById(R.id.recyclerViewNotas)
         editTextSearch = findViewById(R.id.editTextSearch)
-        textViewUser = findViewById(R.id.textViewUser)
         buttonLogout = findViewById(R.id.buttonLogout)
+
+        // Botão de Perfil no cabeçalho
+        val buttonProfile = findViewById<View>(R.id.buttonProfile)
+        buttonProfile?.setOnClickListener {
+            showAccountDialog()
+        }
 
         // Configuração do filtro de pesquisa local
         editTextSearch.addTextChangedListener(object : TextWatcher {
@@ -87,14 +92,6 @@ class MainActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(s: Editable?) {}
         })
-
-        // Indicação visível do utilizador autenticado
-        val email = sessionManager.getUserEmail()
-        if (!email.isNullOrBlank()) {
-            textViewUser.text = getString(R.string.session_user, email)
-        } else {
-            textViewUser.text = getString(R.string.authenticated_user)
-        }
 
         // Configuração do botão Terminar sessão
         buttonLogout.setOnClickListener {
@@ -148,6 +145,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun showAccountDialog() {
+        val email = sessionManager.getUserEmail()
+        val displayEmail = if (!email.isNullOrBlank()) email else getString(R.string.authenticated_user)
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.account_dialog_title)
+            .setMessage(displayEmail)
+            .setPositiveButton(R.string.close, null)
+            .show()
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -173,7 +181,6 @@ class MainActivity : AppCompatActivity() {
                         if (!fetchedEmail.isNullOrBlank()) {
                             sessionManager.saveUserEmail(fetchedEmail)
                             ownerEmail = fetchedEmail
-                            textViewUser.text = getString(R.string.session_user, ownerEmail)
                         } else {
                             return@launch
                         }
@@ -196,8 +203,6 @@ class MainActivity : AppCompatActivity() {
                     ).show()
                     return@launch
                 }
-            } else {
-                textViewUser.text = getString(R.string.session_user, ownerEmail)
             }
 
             // 1. Carregar imediatamente o cache local do ownerEmail

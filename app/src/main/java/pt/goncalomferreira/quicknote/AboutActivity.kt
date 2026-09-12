@@ -1,6 +1,7 @@
 package pt.goncalomferreira.quicknote
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -28,6 +29,12 @@ class AboutActivity : AppCompatActivity() {
             )
 
             insets
+        }
+
+        // Botão voltar no cabeçalho
+        val buttonBack = findViewById<View>(R.id.buttonBack)
+        buttonBack?.setOnClickListener {
+            finish()
         }
     }
 }
