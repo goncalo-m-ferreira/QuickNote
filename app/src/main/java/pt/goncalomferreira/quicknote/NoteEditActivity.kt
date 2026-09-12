@@ -74,21 +74,30 @@ class NoteEditActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_note_edit)
 
-        // Ajusta o conteudo da Activity as barras do sistema.
+        // Ajusta o conteúdo da Activity às barras do sistema preservando as margens da aplicação.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val density = resources.displayMetrics.density
+            val basePaddingHorizontal = (20 * density).toInt()
+            val basePaddingVertical = (16 * density).toInt()
 
             v.setPadding(
-                systemBars.left,
-                systemBars.top,
-                systemBars.right,
-                systemBars.bottom
+                systemBars.left + basePaddingHorizontal,
+                systemBars.top + basePaddingVertical,
+                systemBars.right + basePaddingHorizontal,
+                systemBars.bottom + basePaddingVertical
             )
 
             insets
         }
 
-        // Referencias aos campos utilizados para criar/editar uma nota.
+        // Botão voltar no cabeçalho
+        val buttonBack = findViewById<View>(R.id.buttonBack)
+        buttonBack?.setOnClickListener {
+            finish()
+        }
+
+        // Referências aos campos utilizados para criar/editar uma nota.
         editTextTitulo = findViewById(R.id.editTextTitulo)
         editTextConteudo = findViewById(R.id.editTextConteudo)
         buttonGuardar = findViewById(R.id.buttonGuardar)
@@ -99,7 +108,7 @@ class NoteEditActivity : AppCompatActivity() {
             checkSpeechAndStart()
         }
 
-        // Obtem o DAO atraves da instancia unica da base de dados Room.
+        // Obtém o DAO através da instância única da base de dados Room.
         noteDao = AppDatabase
             .getDatabase(applicationContext)
             .noteDao()
@@ -136,7 +145,7 @@ class NoteEditActivity : AppCompatActivity() {
             }
         }
 
-        // Pede confirmacao antes de eliminar a nota na API e no Room.
+        // Pede confirmação antes de eliminar a nota na API e no Room.
         buttonEliminar.setOnClickListener {
             val note = existingNote ?: return@setOnClickListener
 
@@ -163,7 +172,7 @@ class NoteEditActivity : AppCompatActivity() {
             val titulo = editTextTitulo.text.toString().trim()
             val conteudo = editTextConteudo.text.toString().trim()
 
-            // Valida os dados antes de permitir a gravacao da nota.
+            // Valida os dados antes de permitir a gravação da nota.
             if (titulo.isEmpty()) {
                 editTextTitulo.error = getString(R.string.note_title_required)
                 return@setOnClickListener

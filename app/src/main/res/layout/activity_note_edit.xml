@@ -6,74 +6,156 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
+    android:background="@color/quicknote_background"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="16dp"
     tools:context=".NoteEditActivity">
+
+    <!-- Header Row: Back Button, Header Title, Delete Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonBack"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/back_button_desc"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:padding="0dp"
+        app:icon="@drawable/ic_arrow_back"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="24dp"
+        app:iconTint="@color/quicknote_text_primary"
+        app:layout_constraintBottom_toBottomOf="@id/textViewEditorTitulo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textViewEditorTitulo" />
 
     <TextView
         android:id="@+id/textViewEditorTitulo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:text="@string/editor_new_note_title"
-        android:textSize="28sp"
+        android:textColor="@color/quicknote_text_primary"
+        android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/buttonEliminar"
+        app:layout_constraintStart_toEndOf="@id/buttonBack"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonEliminar"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@string/delete_note"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:padding="0dp"
+        android:visibility="gone"
+        app:icon="@drawable/ic_delete"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="24dp"
+        app:iconTint="@color/quicknote_error"
+        app:layout_constraintBottom_toBottomOf="@id/textViewEditorTitulo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textViewEditorTitulo"
+        tools:visibility="visible" />
+
+    <!-- Title Input Field -->
     <EditText
         android:id="@+id/editTextTitulo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
+        android:minHeight="48dp"
+        android:background="@drawable/bg_note_input"
         android:hint="@string/note_title_hint"
+        android:importantForAutofill="no"
         android:inputType="textCapSentences"
         android:maxLines="1"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:textColor="@color/quicknote_text_primary"
+        android:textColorHint="@color/quicknote_text_secondary"
+        android:textSize="20sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewEditorTitulo" />
 
-    <Button
-        android:id="@+id/buttonDitado"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/note_dictate"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextTitulo" />
-
+    <!-- Content Input Field (Expansive Protagonist) -->
     <EditText
         android:id="@+id/editTextConteudo"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_note_input"
         android:gravity="top|start"
         android:hint="@string/note_content_hint"
+        android:importantForAutofill="no"
         android:inputType="textCapSentences|textMultiLine"
-        android:minLines="8"
-        app:layout_constraintBottom_toTopOf="@id/buttonEliminar"
+        android:padding="16dp"
+        android:textColor="@color/quicknote_text_primary"
+        android:textColorHint="@color/quicknote_text_secondary"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottomBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonDitado" />
+        app:layout_constraintTop_toBottomOf="@id/editTextTitulo" />
 
-    <Button
-        android:id="@+id/buttonEliminar"
+    <!-- Bottom Action Bar: Dictate Icon Button (Left) + Save Button (Right) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutBottomBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/delete_note"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/buttonGuardar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/buttonGuardar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/save_note"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonDitado"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/note_dictate"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="0dp"
+            app:backgroundTint="@color/quicknote_green_light"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_microphone"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="22dp"
+            app:iconTint="@color/quicknote_green_action"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonGuardar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="10dp"
+            android:text="@string/save_note"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/quicknote_green_action"
+            app:cornerRadius="16dp"
+            app:elevation="2dp"
+            app:icon="@drawable/ic_save"
+            app:iconTint="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

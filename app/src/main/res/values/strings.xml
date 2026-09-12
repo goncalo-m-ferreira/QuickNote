@@ -24,6 +24,7 @@
     <string name="microphone_permission_required">Permissão de microfone necessária.</string>
     <string name="speech_not_available">Reconhecimento de voz indisponível.</string>
     <string name="speech_recognition_error">Não foi possível reconhecer a voz.</string>
+    <string name="back_button_desc">Voltar</string>
 
     <!-- Sobre -->
     <string name="about_title">Sobre</string>
