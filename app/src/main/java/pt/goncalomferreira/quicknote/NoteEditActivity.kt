@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
 import android.speech.RecognitionListener
@@ -24,6 +25,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -90,12 +92,34 @@ class NoteEditActivity : AppCompatActivity() {
             val uri = pendingPhotoUri ?: return@registerForActivityResult
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
-                    val inputStream = contentResolver.openInputStream(uri)
-                    val originalBitmap = BitmapFactory.decodeStream(inputStream)
-                    inputStream?.close()
+                    // Read EXIF orientation
+                    var orientation = ExifInterface.ORIENTATION_NORMAL
+                    contentResolver.openInputStream(uri)?.use { stream ->
+                        val exif = ExifInterface(stream)
+                        orientation = exif.getAttributeInt(
+                            ExifInterface.TAG_ORIENTATION,
+                            ExifInterface.ORIENTATION_NORMAL
+                        )
+                    }
+
+                    // Decode original bitmap
+                    val originalBitmap = contentResolver.openInputStream(uri)?.use { stream ->
+                        BitmapFactory.decodeStream(stream)
+                    }
 
                     if (originalBitmap != null) {
-                        val resizedBitmap = scaleBitmapDown(originalBitmap, 1024)
+                        // Apply EXIF rotation
+                        val rotatedBitmap = when (orientation) {
+                            ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(originalBitmap, 90f)
+                            ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(originalBitmap, 180f)
+                            ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(originalBitmap, 270f)
+                            else -> originalBitmap
+                        }
+
+                        // Scale down after rotation
+                        val resizedBitmap = scaleBitmapDown(rotatedBitmap, 1024)
+
+                        // Compress to JPEG 80%
                         val byteArrayOutputStream = ByteArrayOutputStream()
                         resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
                         val bytes = byteArrayOutputStream.toByteArray()
@@ -373,6 +397,16 @@ class NoteEditActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun rotateBitmap(bitmap: Bitmap, degrees: Float): Bitmap {
+        val matrix = Matrix()
+        matrix.postRotate(degrees)
+        val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        if (rotated != bitmap) {
+            bitmap.recycle()
+        }
+        return rotated
     }
 
     private fun scaleBitmapDown(bitmap: Bitmap, maxDimension: Int): Bitmap {

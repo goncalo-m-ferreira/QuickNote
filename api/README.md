@@ -238,6 +238,7 @@ JWT_EXPIRES_IN=7d
     - `401 Unauthorized`: Missing or malformed `Authorization` header.
     - `403 Forbidden`: Note belongs to another user.
     - `404 Not Found`: Note does not exist.
+    - `413 Payload Too Large`: Photo file exceeds the maximum allowed size of 5MB.
 
 - **`GET /notes/:id/photo`**
   - **Auth:** Bearer Token required

@@ -86,75 +86,84 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewEditorTitulo" />
 
-    <!-- Content Input Field (Expansive Protagonist) -->
-    <EditText
-        android:id="@+id/editTextConteudo"
+    <!-- Content & Photo Container Card (Same Document Visual Unit) -->
+    <LinearLayout
+        android:id="@+id/layoutConteudoContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"
         android:background="@drawable/bg_note_input"
-        android:gravity="top|start"
-        android:hint="@string/note_content_hint"
-        android:importantForAutofill="no"
-        android:inputType="textCapSentences|textMultiLine"
-        android:padding="16dp"
-        android:textColor="@color/quicknote_text_primary"
-        android:textColorHint="@color/quicknote_text_secondary"
-        android:textSize="15sp"
-        app:layout_constraintBottom_toTopOf="@id/cardPhotoPreview"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextTitulo" />
-
-    <!-- Photo Preview Container -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardPhotoPreview"
-        android:layout_width="0dp"
-        android:layout_height="180dp"
-        android:layout_marginBottom="12dp"
-        android:visibility="gone"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        app:strokeColor="@color/quicknote_border"
-        app:strokeWidth="1dp"
+        android:orientation="vertical"
+        android:padding="12dp"
         app:layout_constraintBottom_toTopOf="@id/layoutBottomBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:visibility="visible">
+        app:layout_constraintTop_toBottomOf="@id/editTextTitulo">
 
-        <FrameLayout
+        <!-- Content Input Field (Expansive Protagonist) -->
+        <EditText
+            android:id="@+id/editTextConteudo"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@null"
+            android:gravity="top|start"
+            android:hint="@string/note_content_hint"
+            android:importantForAutofill="no"
+            android:inputType="textCapSentences|textMultiLine"
+            android:padding="4dp"
+            android:textColor="@color/quicknote_text_primary"
+            android:textColorHint="@color/quicknote_text_secondary"
+            android:textSize="15sp" />
 
-            <ImageView
-                android:id="@+id/imageViewPhotoPreview"
+        <!-- Photo Preview Container (Embedded inside the note content card) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPhotoPreview"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/quicknote_border"
+            app:strokeWidth="1dp"
+            tools:visibility="visible">
+
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="@string/cd_photo_preview"
-                android:scaleType="centerCrop" />
+                android:layout_height="match_parent">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonRemovePhoto"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_gravity="top|end"
-                android:layout_margin="8dp"
-                android:contentDescription="@string/action_remove_photo"
-                android:minWidth="36dp"
-                android:minHeight="36dp"
-                android:padding="0dp"
-                app:backgroundTint="@color/quicknote_surface"
-                app:cornerRadius="18dp"
-                app:icon="@drawable/ic_delete"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconSize="20dp"
-                app:iconTint="@color/quicknote_error" />
+                <ImageView
+                    android:id="@+id/imageViewPhotoPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/cd_photo_preview"
+                    android:scaleType="fitCenter" />
 
-        </FrameLayout>
-    </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonRemovePhoto"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="8dp"
+                    android:contentDescription="@string/action_remove_photo"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:padding="0dp"
+                    app:backgroundTint="@color/quicknote_surface"
+                    app:cornerRadius="24dp"
+                    app:icon="@drawable/ic_delete"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="20dp"
+                    app:iconTint="@color/quicknote_error" />
+
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
 
     <!-- Bottom Action Bar: Dictate & Camera Buttons (Left) + Save Button (Right) -->
     <androidx.constraintlayout.widget.ConstraintLayout
