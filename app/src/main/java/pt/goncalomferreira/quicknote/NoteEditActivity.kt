@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
 import android.speech.RecognitionListener
@@ -25,7 +26,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import android.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -66,10 +66,81 @@ class NoteEditActivity : AppCompatActivity() {
     private var existingNote: Note? = null
 
     // Photo state management
-    private var pendingPhotoUri: Uri? = null
     private var pendingPhotoBytes: ByteArray? = null
     private var hasExistingRemotePhoto: Boolean = false
     private var photoMarkedForDeletion: Boolean = false
+    private var hasPendingPhoto: Boolean = false
+
+    companion object {
+        private const val KEY_HAS_PENDING_PHOTO = "KEY_HAS_PENDING_PHOTO"
+        private const val KEY_PHOTO_MARKED_FOR_DELETION = "KEY_PHOTO_MARKED_FOR_DELETION"
+    }
+
+    private fun getTempPhotoUri(): Uri {
+        val tempFile = File(cacheDir, "temp_note_photo.jpg")
+        return FileProvider.getUriForFile(
+            this,
+            "${packageName}.fileprovider",
+            tempFile
+        )
+    }
+
+    private fun processPendingPhoto() {
+        val uri = getTempPhotoUri()
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // Read EXIF orientation
+                var orientation = ExifInterface.ORIENTATION_NORMAL
+                contentResolver.openInputStream(uri)?.use { stream ->
+                    val exif = ExifInterface(stream)
+                    orientation = exif.getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_NORMAL
+                    )
+                }
+
+                // Decode original bitmap
+                val originalBitmap = contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }
+
+                if (originalBitmap != null) {
+                    // Apply EXIF rotation
+                    val rotatedBitmap = when (orientation) {
+                        ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(originalBitmap, 90f)
+                        ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(originalBitmap, 180f)
+                        ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(originalBitmap, 270f)
+                        else -> originalBitmap
+                    }
+
+                    // Scale down after rotation
+                    val resizedBitmap = scaleBitmapDown(rotatedBitmap, 1024)
+
+                    // Compress to JPEG 80%
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
+                    val bytes = byteArrayOutputStream.toByteArray()
+
+                    pendingPhotoBytes = bytes
+                    hasPendingPhoto = true
+                    photoMarkedForDeletion = false
+
+                    withContext(Dispatchers.Main) {
+                        imageViewPhotoPreview.setImageBitmap(resizedBitmap)
+                        cardPhotoPreview.visibility = View.VISIBLE
+                    }
+                }
+            } catch (_: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@NoteEditActivity,
+                        getString(R.string.error_unknown),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -89,59 +160,7 @@ class NoteEditActivity : AppCompatActivity() {
         ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
         if (success) {
-            val uri = pendingPhotoUri ?: return@registerForActivityResult
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    // Read EXIF orientation
-                    var orientation = ExifInterface.ORIENTATION_NORMAL
-                    contentResolver.openInputStream(uri)?.use { stream ->
-                        val exif = ExifInterface(stream)
-                        orientation = exif.getAttributeInt(
-                            ExifInterface.TAG_ORIENTATION,
-                            ExifInterface.ORIENTATION_NORMAL
-                        )
-                    }
-
-                    // Decode original bitmap
-                    val originalBitmap = contentResolver.openInputStream(uri)?.use { stream ->
-                        BitmapFactory.decodeStream(stream)
-                    }
-
-                    if (originalBitmap != null) {
-                        // Apply EXIF rotation
-                        val rotatedBitmap = when (orientation) {
-                            ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(originalBitmap, 90f)
-                            ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(originalBitmap, 180f)
-                            ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(originalBitmap, 270f)
-                            else -> originalBitmap
-                        }
-
-                        // Scale down after rotation
-                        val resizedBitmap = scaleBitmapDown(rotatedBitmap, 1024)
-
-                        // Compress to JPEG 80%
-                        val byteArrayOutputStream = ByteArrayOutputStream()
-                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
-                        val bytes = byteArrayOutputStream.toByteArray()
-
-                        pendingPhotoBytes = bytes
-                        photoMarkedForDeletion = false
-
-                        withContext(Dispatchers.Main) {
-                            imageViewPhotoPreview.setImageBitmap(resizedBitmap)
-                            cardPhotoPreview.visibility = View.VISIBLE
-                        }
-                    }
-                } catch (_: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@NoteEditActivity,
-                            getString(R.string.error_unknown),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
+            processPendingPhoto()
         }
     }
 
@@ -156,6 +175,11 @@ class NoteEditActivity : AppCompatActivity() {
         if (authHeader == null || ownerEmail.isNullOrBlank()) {
             redirectToLogin()
             return
+        }
+
+        if (savedInstanceState != null) {
+            hasPendingPhoto = savedInstanceState.getBoolean(KEY_HAS_PENDING_PHOTO, false)
+            photoMarkedForDeletion = savedInstanceState.getBoolean(KEY_PHOTO_MARKED_FOR_DELETION, false)
         }
 
         enableEdgeToEdge()
@@ -196,19 +220,17 @@ class NoteEditActivity : AppCompatActivity() {
         imageViewPhotoPreview = findViewById(R.id.imageViewPhotoPreview)
         buttonRemovePhoto = findViewById(R.id.buttonRemovePhoto)
 
+        if (hasPendingPhoto) {
+            processPendingPhoto()
+        }
+
         buttonDitado.setOnClickListener {
             checkSpeechAndStart()
         }
 
         buttonCamera.setOnClickListener {
             try {
-                val tempFile = File(cacheDir, "temp_note_photo.jpg")
-                val uri = FileProvider.getUriForFile(
-                    this,
-                    "${packageName}.fileprovider",
-                    tempFile
-                )
-                pendingPhotoUri = uri
+                val uri = getTempPhotoUri()
                 takePictureLauncher.launch(uri)
             } catch (_: Exception) {
                 Toast.makeText(this, getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
@@ -217,7 +239,7 @@ class NoteEditActivity : AppCompatActivity() {
 
         buttonRemovePhoto.setOnClickListener {
             pendingPhotoBytes = null
-            pendingPhotoUri = null
+            hasPendingPhoto = false
             if (hasExistingRemotePhoto) {
                 photoMarkedForDeletion = true
                 hasExistingRemotePhoto = false
@@ -261,7 +283,9 @@ class NoteEditActivity : AppCompatActivity() {
 
                 val remoteId = loadedNote.remoteId
                 if (remoteId != null && loadedNote.ownerEmail != Note.LEGACY_OWNER) {
-                    loadRemotePhoto(authHeader, remoteId)
+                    if (!hasPendingPhoto && !photoMarkedForDeletion) {
+                        loadRemotePhoto(authHeader, remoteId)
+                    }
                 }
 
                 buttonGuardar.isEnabled = true
@@ -323,6 +347,12 @@ class NoteEditActivity : AppCompatActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_HAS_PENDING_PHOTO, hasPendingPhoto)
+        outState.putBoolean(KEY_PHOTO_MARKED_FOR_DELETION, photoMarkedForDeletion)
+    }
+
     private fun loadRemotePhoto(authHeader: String, remoteId: Long) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -352,7 +382,9 @@ class NoteEditActivity : AppCompatActivity() {
         if (photoMarkedForDeletion) {
             try {
                 val response = ApiClient.apiService.deleteNotePhoto(authHeader, remoteId)
-                if (!response.isSuccessful && response.code() != 404) {
+                if (response.isSuccessful || response.code() == 404) {
+                    photoMarkedForDeletion = false
+                } else {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             this@NoteEditActivity,
@@ -378,7 +410,10 @@ class NoteEditActivity : AppCompatActivity() {
                 val part = MultipartBody.Part.createFormData("photo", "photo.jpg", requestBody)
                 val response = ApiClient.apiService.uploadNotePhoto(authHeader, remoteId, part)
 
-                if (!response.isSuccessful) {
+                if (response.isSuccessful) {
+                    hasPendingPhoto = false
+                    pendingPhotoBytes = null
+                } else {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             this@NoteEditActivity,
