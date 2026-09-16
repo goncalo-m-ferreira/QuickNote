@@ -1,12 +1,16 @@
 package pt.goncalomferreira.quicknote.network
 
+import okhttp3.MultipartBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface ApiService {
@@ -57,6 +61,26 @@ interface ApiService {
 
     @DELETE("notes/{id}")
     suspend fun deleteNote(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long
+    ): Response<MessageResponse>
+
+    @Multipart
+    @PUT("notes/{id}/photo")
+    suspend fun uploadNotePhoto(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long,
+        @Part photo: MultipartBody.Part
+    ): Response<MessageResponse>
+
+    @GET("notes/{id}/photo")
+    suspend fun getNotePhoto(
+        @Header("Authorization") token: String,
+        @Path("id") id: Long
+    ): Response<ResponseBody>
+
+    @DELETE("notes/{id}/photo")
+    suspend fun deleteNotePhoto(
         @Header("Authorization") token: String,
         @Path("id") id: Long
     ): Response<MessageResponse>

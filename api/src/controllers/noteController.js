@@ -144,6 +144,92 @@ const NoteController = {
       console.error('Error deleting note:', error);
       return res.status(500).json({ error: 'Internal server error deleting note.' });
     }
+  },
+
+  async uploadPhoto(req, res) {
+    try {
+      if (!isValidNoteId(req.params.id)) {
+        return res.status(400).json({ error: 'Invalid note ID format.' });
+      }
+      const noteId = parseInt(req.params.id, 10);
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No photo file provided.' });
+      }
+
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedMimeTypes.includes(req.file.mimetype)) {
+        return res.status(400).json({ error: 'Invalid file type. Only JPEG, PNG and WebP are allowed.' });
+      }
+
+      const note = await NoteModel.findById(noteId);
+      if (!note) {
+        return res.status(404).json({ error: 'Note not found.' });
+      }
+
+      if (note.user_id !== req.user.userId) {
+        return res.status(403).json({ error: 'Forbidden: You do not have permission to modify this note.' });
+      }
+
+      await NoteModel.updatePhoto(noteId, req.file.buffer, req.file.mimetype);
+
+      return res.status(200).json({ message: 'Photo uploaded successfully.' });
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      return res.status(500).json({ error: 'Internal server error uploading photo.' });
+    }
+  },
+
+  async getPhoto(req, res) {
+    try {
+      if (!isValidNoteId(req.params.id)) {
+        return res.status(400).json({ error: 'Invalid note ID format.' });
+      }
+      const noteId = parseInt(req.params.id, 10);
+
+      const note = await NoteModel.getPhoto(noteId);
+      if (!note) {
+        return res.status(404).json({ error: 'Note not found.' });
+      }
+
+      if (note.user_id !== req.user.userId) {
+        return res.status(403).json({ error: 'Forbidden: You do not have permission to access this note.' });
+      }
+
+      if (!note.photo) {
+        return res.status(404).json({ error: 'No photo found for this note.' });
+      }
+
+      res.type(note.photo_mime_type).send(note.photo);
+    } catch (error) {
+      console.error('Error fetching photo:', error);
+      return res.status(500).json({ error: 'Internal server error fetching photo.' });
+    }
+  },
+
+  async deletePhoto(req, res) {
+    try {
+      if (!isValidNoteId(req.params.id)) {
+        return res.status(400).json({ error: 'Invalid note ID format.' });
+      }
+      const noteId = parseInt(req.params.id, 10);
+
+      const note = await NoteModel.findById(noteId);
+      if (!note) {
+        return res.status(404).json({ error: 'Note not found.' });
+      }
+
+      if (note.user_id !== req.user.userId) {
+        return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this note.' });
+      }
+
+      await NoteModel.deletePhoto(noteId);
+
+      return res.status(200).json({ message: 'Photo deleted successfully.' });
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      return res.status(500).json({ error: 'Internal server error deleting photo.' });
+    }
   }
 };
 
