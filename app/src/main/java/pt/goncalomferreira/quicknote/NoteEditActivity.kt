@@ -359,21 +359,53 @@ class NoteEditActivity : AppCompatActivity() {
                 val response = ApiClient.apiService.getNotePhoto(authHeader, remoteId)
                 if (response.isSuccessful) {
                     val responseBody = response.body()
-                    if (responseBody != null) {
-                        val inputStream = responseBody.byteStream()
-                        val bitmap = BitmapFactory.decodeStream(inputStream)
-                        inputStream.close()
-                        if (bitmap != null) {
-                            hasExistingRemotePhoto = true
+                    val bitmap = responseBody?.byteStream()?.use { inputStream ->
+                        BitmapFactory.decodeStream(inputStream)
+                    }
+                    if (bitmap != null) {
+                        hasExistingRemotePhoto = true
+                        withContext(Dispatchers.Main) {
+                            imageViewPhotoPreview.setImageBitmap(bitmap)
+                            cardPhotoPreview.visibility = View.VISIBLE
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@NoteEditActivity,
+                                getString(R.string.error_photo_load),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } else {
+                    when (response.code()) {
+                        404 -> {
+                            // Nota não tem fotografia; manter preview escondido e não mostrar Toast
+                        }
+                        401, 403 -> {
                             withContext(Dispatchers.Main) {
-                                imageViewPhotoPreview.setImageBitmap(bitmap)
-                                cardPhotoPreview.visibility = View.VISIBLE
+                                redirectToLogin()
+                            }
+                        }
+                        else -> {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(
+                                    this@NoteEditActivity,
+                                    getString(R.string.error_photo_load),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     }
                 }
             } catch (_: Exception) {
-                // Keep cardPhotoPreview hidden if no photo or error
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@NoteEditActivity,
+                        getString(R.string.error_photo_load),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }

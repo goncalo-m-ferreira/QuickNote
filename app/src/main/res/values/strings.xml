@@ -98,4 +98,5 @@
     <string name="cd_photo_preview">Pré-visualização da fotografia da nota</string>
     <string name="error_photo_upload">Nota guardada, mas não foi possível enviar a fotografia.</string>
     <string name="error_photo_delete">Não foi possível remover a fotografia no servidor.</string>
+    <string name="error_photo_load">Não foi possível carregar a fotografia.</string>
 </resources>
