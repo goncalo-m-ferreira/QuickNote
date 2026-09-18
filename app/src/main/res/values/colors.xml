@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
     <!-- Identidade visual QuickNote -->
     <color name="quicknote_green">#52B788</color>
-    <color name="quicknote_green_dark">#40916C</color>
     <color name="quicknote_green_action">#2D6A4F</color>
     <color name="quicknote_green_light">#E9F7EF</color>
     <color name="quicknote_background">#F8FBF9</color>

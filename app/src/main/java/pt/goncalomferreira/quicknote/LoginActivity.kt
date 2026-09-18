@@ -194,13 +194,7 @@ class LoginActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-            } catch (e: IOException) {
-                Toast.makeText(
-                    this@LoginActivity,
-                    getString(R.string.error_session_validation),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Toast.makeText(
                     this@LoginActivity,
                     getString(R.string.error_session_validation),

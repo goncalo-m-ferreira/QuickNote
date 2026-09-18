@@ -2,7 +2,6 @@
     <string name="app_name">QuickNote</string>
     <string name="main_title">As minhas notas</string>
     <string name="empty_notes_message">Ainda não existem notas.</string>
-    <string name="new_note">Nova nota</string>
     <string name="new_note_button">Nova nota</string>
     <string name="search_hint">Pesquisar notas...</string>
     <string name="no_notes_found">Nenhuma nota encontrada.</string>
@@ -29,7 +28,6 @@
     <!-- Sobre -->
     <string name="about_title">Sobre</string>
     <string name="about_project_label">Projeto</string>
-    <string name="about_course">Licenciatura em Eng. Informática</string>
     <string name="about_course_full">Licenciatura em Engenharia Informática</string>
     <string name="about_subject">Desenvolvimento de Aplicações Móveis</string>
     <string name="about_academic_year">2025/26</string>
