@@ -57,6 +57,7 @@ JWT_EXPIRES_IN=7d
 | POST | /auth/login | Não | Autenticar utilizador e obter token JWT |
 | POST | /auth/logout | Sim | Terminar sessão do utilizador |
 | GET | /users/me | Sim | Obter dados do utilizador autenticado |
+| PATCH | /users/me | Sim | Atualizar o nome de apresentação do utilizador |
 | GET | /notes | Sim | Listar as notas do utilizador autenticado |
 | GET | /notes/:id | Sim | Obter uma nota específica do utilizador |
 | POST | /notes | Sim | Criar uma nova nota |

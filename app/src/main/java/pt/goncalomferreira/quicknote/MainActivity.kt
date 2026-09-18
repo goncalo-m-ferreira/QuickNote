@@ -5,18 +5,18 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 import pt.goncalomferreira.quicknote.adapter.NoteAdapter
 import pt.goncalomferreira.quicknote.auth.SessionManager
@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerViewNotas: RecyclerView
     private lateinit var editTextSearch: EditText
     private lateinit var noteAdapter: NoteAdapter
-    private lateinit var buttonLogout: Button
+    private lateinit var buttonProfile: MaterialButton
 
     private var allNotes: List<Note> = emptyList()
     private var currentSearchQuery: String = ""
@@ -75,12 +75,13 @@ class MainActivity : AppCompatActivity() {
         textViewSemNotas = findViewById(R.id.textViewSemNotas)
         recyclerViewNotas = findViewById(R.id.recyclerViewNotas)
         editTextSearch = findViewById(R.id.editTextSearch)
-        buttonLogout = findViewById(R.id.buttonLogout)
 
         // Botão de Perfil no cabeçalho
-        val buttonProfile = findViewById<View>(R.id.buttonProfile)
-        buttonProfile?.setOnClickListener {
-            showAccountDialog()
+        buttonProfile = findViewById(R.id.buttonProfile)
+        updateProfileButton()
+
+        buttonProfile.setOnClickListener {
+            showProfileMenu()
         }
 
         // Configuração do filtro de pesquisa local
@@ -92,26 +93,6 @@ class MainActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(s: Editable?) {}
         })
-
-        // Configuração do botão Terminar sessão
-        buttonLogout.setOnClickListener {
-            buttonLogout.isEnabled = false
-            buttonLogout.text = getString(R.string.logging_out)
-
-            val authHeader = sessionManager.getAuthorizationHeader()
-
-            lifecycleScope.launch {
-                if (authHeader != null) {
-                    try {
-                        ApiClient.apiService.logout(authHeader)
-                    } catch (_: Exception) {
-                        // Ignora falhas de rede no logout remoto (JWT é stateless)
-                    }
-                }
-
-                redirectToLogin()
-            }
-        }
 
         // Configura a lista que apresenta as notas guardadas.
         noteAdapter = NoteAdapter { note ->
@@ -145,15 +126,76 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showAccountDialog() {
-        val email = sessionManager.getUserEmail()
-        val displayEmail = if (!email.isNullOrBlank()) email else getString(R.string.authenticated_user)
+    private fun updateProfileButton() {
+        val displayName = sessionManager.getUserDisplayName()
+        buttonProfile.text = if (!displayName.isNullOrBlank()) {
+            displayName
+        } else {
+            getString(R.string.account_title)
+        }
+    }
 
-        AlertDialog.Builder(this)
-            .setTitle(R.string.account_dialog_title)
-            .setMessage(displayEmail)
-            .setPositiveButton(R.string.close, null)
-            .show()
+    private fun showProfileMenu() {
+        val popup = PopupMenu(this, buttonProfile)
+        popup.menuInflater.inflate(R.menu.menu_profile, popup.menu)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.menuAccount -> {
+                    startActivity(Intent(this, AccountActivity::class.java))
+                    true
+                }
+                R.id.menuLogout -> {
+                    logout()
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun logout() {
+        buttonProfile.isEnabled = false
+        val authHeader = sessionManager.getAuthorizationHeader()
+
+        lifecycleScope.launch {
+            if (authHeader != null) {
+                try {
+                    ApiClient.apiService.logout(authHeader)
+                } catch (_: Exception) {
+                    // Ignora falhas de rede no logout remoto (JWT é stateless)
+                }
+            }
+
+            redirectToLogin()
+        }
+    }
+
+    private fun refreshUserProfile(authHeader: String) {
+        lifecycleScope.launch {
+            try {
+                val userResponse = ApiClient.apiService.getCurrentUser(authHeader)
+                if (userResponse.isSuccessful) {
+                    val user = userResponse.body()?.user
+                    if (user != null) {
+                        val email = user.email
+                        val displayName = user.displayName
+
+                        if (!email.isNullOrBlank()) {
+                            sessionManager.saveUserEmail(email)
+                        }
+                        if (!displayName.isNullOrBlank()) {
+                            sessionManager.saveUserDisplayName(displayName)
+                        }
+                        updateProfileButton()
+                    }
+                } else if (userResponse.code() == 401 || userResponse.code() == 403) {
+                    redirectToLogin()
+                }
+            } catch (_: Exception) {
+                // Ignora erros de rede para não prejudicar o funcionamento offline
+            }
+        }
     }
 
     override fun onResume() {
@@ -165,6 +207,8 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        updateProfileButton()
+        refreshUserProfile(authHeader)
         loadAndSyncNotes(authHeader)
     }
 

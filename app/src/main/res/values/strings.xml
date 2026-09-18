@@ -90,7 +90,7 @@
     <string name="error_legacy_note_operation">Não é possível alterar notas guardadas no formato antigo.</string>
     <string name="account_dialog_title">Conta</string>
     <string name="close">Fechar</string>
-    <string name="open_account_desc">Abrir conta</string>
+    <string name="open_account_desc">Abrir menu da conta</string>
 
     <!-- Fotografia -->
     <string name="action_take_photo">Tirar fotografia</string>
@@ -99,4 +99,16 @@
     <string name="error_photo_upload">Nota guardada, mas não foi possível enviar a fotografia.</string>
     <string name="error_photo_delete">Não foi possível remover a fotografia no servidor.</string>
     <string name="error_photo_load">Não foi possível carregar a fotografia.</string>
+
+    <!-- Conta / Perfil -->
+    <string name="account_title">Conta</string>
+    <string name="profile_section_title">Perfil</string>
+    <string name="display_name_label">Nome de apresentação</string>
+    <string name="display_name_hint">O seu nome</string>
+    <string name="email_field_label">Email</string>
+    <string name="save_changes_button">Guardar alterações</string>
+    <string name="profile_updated">Perfil atualizado.</string>
+    <string name="error_display_name_length">O nome deve ter entre 2 e 20 caracteres.</string>
+    <string name="error_fetch_account">Não foi possível carregar os dados da conta.</string>
+    <string name="error_update_profile">Não foi possível atualizar o perfil.</string>
 </resources>
