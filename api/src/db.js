@@ -11,6 +11,7 @@ async function initDb() {
       id SERIAL PRIMARY KEY,
       email VARCHAR(255) UNIQUE NOT NULL,
       password_hash VARCHAR(255) NOT NULL,
+      display_name VARCHAR(20),
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
@@ -26,6 +27,7 @@ async function initDb() {
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
 
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(20);
     ALTER TABLE notes ADD COLUMN IF NOT EXISTS photo BYTEA;
     ALTER TABLE notes ADD COLUMN IF NOT EXISTS photo_mime_type VARCHAR(50);
   `;

@@ -11,8 +11,19 @@ const UserModel = {
 
   async findById(id) {
     const result = await db.query(
-      'SELECT id, email, created_at, updated_at FROM users WHERE id = $1',
+      'SELECT id, email, display_name, created_at, updated_at FROM users WHERE id = $1',
       [id]
+    );
+    return result.rows[0] || null;
+  },
+
+  async updateDisplayName(userId, displayName) {
+    const result = await db.query(
+      `UPDATE users
+       SET display_name = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING id, email, display_name, created_at, updated_at`,
+      [displayName, userId]
     );
     return result.rows[0] || null;
   },
