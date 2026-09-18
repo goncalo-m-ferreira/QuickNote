@@ -1,261 +1,83 @@
-# QuickNote REST API
+# QuickNote API
 
-Backend REST API for the QuickNote Android mobile application. Built with Node.js, Express, and PostgreSQL.
+API REST para a aplicação móvel QuickNote, responsável pela gestão de utilizadores, autenticação, notas e fotografias associadas.
 
----
+## Tecnologias
 
-## 🛠️ Tech Stack & Architecture
+- Node.js
+- Express
+- PostgreSQL
+- pg
+- bcryptjs
+- jsonwebtoken
+- cors
+- dotenv
+- Multer
 
-- **Runtime:** Node.js (>= 18.0.0)
-- **Framework:** Express.js
-- **Database:** PostgreSQL with connection pooling (`pg`)
-- **Password Hashing:** `bcryptjs` (Salt rounds: 10)
-- **Authentication:** Stateless JSON Web Tokens (`jsonwebtoken`)
-- **Cross-Origin Handling:** `cors`
-- **File Uploads:** `multer` (Memory storage, max 5MB)
+## Configuração
 
----
-
-## 🔐 Security & Authorization Model
-
-1. **Email Normalization:** All emails are trimmed and converted to lowercase prior to database queries to prevent case-sensitive duplicate accounts.
-2. **Password Security:** Passwords are never stored in plain text and are excluded from all query returns (`password_hash` is never exposed).
-3. **Stateless JWT Authorization:** Protected endpoints require `Authorization: Bearer <token>` header.
-4. **Ownership-Based Access Control:**
-   - `401 Unauthorized`: Missing or malformed `Authorization` header.
-   - `403 Forbidden`: Invalid, corrupted, or expired JWT; or authenticated user attempts to read, modify, or delete a note owned by another user.
-   - `404 Not Found`: Requested resource ID does not exist in the database.
-5. **SQL Injection Prevention:** All database operations utilize parameterized queries (`$1`, `$2`).
-
----
-
-## ⚙️ Environment Variables
-
-Create an `api/.env` file based on `.env.example`:
+Criar o ficheiro `api/.env` com as seguintes variáveis de ambiente:
 
 ```env
 PORT=3000
 NODE_ENV=development
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/quicknote
-JWT_SECRET=your_jwt_secret_key_change_in_production
+JWT_SECRET=chave_secreta_jwt
 JWT_EXPIRES_IN=7d
 ```
 
----
+## Executar localmente
 
-## 🚀 Getting Started (Local Development)
-
-1. Navigate to the API directory:
+1. Entrar na pasta da API:
    ```bash
    cd api
    ```
-2. Install dependencies:
+
+2. Instalar as dependências:
    ```bash
    npm install
    ```
-3. Set up the local `.env` configuration:
-   ```bash
-   cp .env.example .env
-   ```
-4. Start the development server (auto-reloads on file change):
+
+3. Iniciar o servidor em modo de desenvolvimento:
    ```bash
    npm run dev
    ```
-5. Run in production mode:
+
+4. Iniciar em modo de produção:
    ```bash
    npm start
    ```
 
----
+## Endpoints
 
-## 📡 API Endpoints Reference
+| Método | Endpoint | Autenticação | Descrição |
+| --- | --- | --- | --- |
+| GET | /health | Não | Estado da API |
+| POST | /auth/register | Não | Registar novo utilizador |
+| POST | /auth/login | Não | Autenticar utilizador e obter token JWT |
+| POST | /auth/logout | Sim | Terminar sessão do utilizador |
+| GET | /users/me | Sim | Obter dados do utilizador autenticado |
+| GET | /notes | Sim | Listar as notas do utilizador autenticado |
+| GET | /notes/:id | Sim | Obter uma nota específica do utilizador |
+| POST | /notes | Sim | Criar uma nova nota |
+| PUT | /notes/:id | Sim | Atualizar uma nota existente |
+| DELETE | /notes/:id | Sim | Eliminar uma nota |
+| PUT | /notes/:id/photo | Sim | Enviar ou atualizar a fotografia de uma nota |
+| GET | /notes/:id/photo | Sim | Obter a fotografia de uma nota |
+| DELETE | /notes/:id/photo | Sim | Eliminar a fotografia de uma nota |
 
-### 1. Health Check
-- **`GET /health`**
-  - **Auth:** Public
-  - **Response (200 OK):**
-    ```json
-    {
-      "status": "ok",
-      "service": "QuickNote API",
-      "timestamp": "2026-09-11T16:00:00.000Z"
-    }
-    ```
+## Autenticação
 
----
+A autenticação é feita com JSON Web Tokens (JWT) enviados no cabeçalho `Authorization: Bearer <token>`.
 
-### 2. Authentication
+- O acesso às notas é estritamente limitado ao respetivo proprietário.
+- As palavras-passe são protegidas com hash utilizando bcryptjs antes de serem guardadas na base de dados.
+- Todas as consultas ao PostgreSQL utilizam queries parametrizadas para prevenir injeção de SQL.
 
-- **`POST /auth/register`**
-  - **Auth:** Public
-  - **Request Body:**
-    ```json
-    {
-      "email": "user@example.com",
-      "password": "securepassword123"
-    }
-    ```
-  - **Responses:**
-    - `201 Created`: User registered successfully with signed JWT.
-    - `400 Bad Request`: Missing fields, non-string types, email > 255 chars, invalid email format, or password < 6 characters.
-    - `409 Conflict`: Email already registered.
+## Fotografias
 
-- **`POST /auth/login`**
-  - **Auth:** Public
-  - **Request Body:**
-    ```json
-    {
-      "email": "user@example.com",
-      "password": "securepassword123"
-    }
-    ```
-  - **Responses:**
-    - `200 OK`: Login successful with signed JWT.
-    - `400 Bad Request`: Missing email or password, non-string types, or email > 255 chars.
-    - `401 Unauthorized`: Invalid credentials.
+A gestão de fotografias utiliza o `Multer` para processar pedidos `multipart/form-data`.
 
-- **`POST /auth/logout`**
-  - **Auth:** Bearer Token required
-  - **Header:** `Authorization: Bearer <token>`
-  - **Responses:**
-    - `200 OK`:
-      ```json
-      {
-        "message": "Logout successful. Token invalidated on client."
-      }
-      ```
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Invalid, corrupted, or expired token.
-
----
-
-### 3. Users
-
-- **`GET /users/me`**
-  - **Auth:** Bearer Token required
-  - **Header:** `Authorization: Bearer <token>`
-  - **Responses:**
-    - `200 OK`:
-      ```json
-      {
-        "user": {
-          "id": 1,
-          "email": "user@example.com",
-          "createdAt": "2026-09-11T16:00:00.000Z",
-          "updatedAt": "2026-09-11T16:00:00.000Z"
-        }
-      }
-      ```
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Invalid, corrupted, or expired token.
-
----
-
-### 4. Notes CRUD
-
-- **`GET /notes`**
-  - **Auth:** Bearer Token required
-  - **Header:** `Authorization: Bearer <token>`
-  - **Responses:**
-    - `200 OK`:
-      ```json
-      {
-        "notes": [
-          {
-            "id": 1,
-            "user_id": 1,
-            "title": "Meeting Notes",
-            "content": "Discuss project milestones",
-            "created_at": "2026-09-11T16:00:00.000Z",
-            "updated_at": "2026-09-11T16:00:00.000Z"
-          }
-        ]
-      }
-      ```
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Invalid, corrupted, or expired token.
-
-- **`GET /notes/:id`**
-  - **Auth:** Bearer Token required
-  - **Responses:**
-    - `200 OK`: Returns the requested note object.
-    - `400 Bad Request`: Non-numeric or invalid ID format.
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Invalid/expired token OR note belongs to a different user.
-    - `404 Not Found`: Note does not exist.
-
-- **`POST /notes`**
-  - **Auth:** Bearer Token required
-  - **Request Body:**
-    ```json
-    {
-      "title": "Shopping List",
-      "content": "Milk, eggs, coffee"
-    }
-    ```
-  - **Responses:**
-    - `201 Created`: Note created successfully.
-    - `400 Bad Request`: Missing, empty, non-string, or title > 255 chars; or missing, empty, or non-string content.
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Invalid, corrupted, or expired token.
-
-- **`PUT /notes/:id`**
-  - **Auth:** Bearer Token required
-  - **Request Body:**
-    ```json
-    {
-      "title": "Updated Title",
-      "content": "Updated content text"
-    }
-    ```
-  - **Responses:**
-    - `200 OK`: Note updated successfully.
-    - `400 Bad Request`: Invalid ID format; missing, empty, non-string, or title > 255 chars; or missing, empty, or non-string content.
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Invalid/expired token OR note belongs to another user.
-    - `404 Not Found`: Note does not exist.
-
-- **`DELETE /notes/:id`**
-  - **Auth:** Bearer Token required
-  - **Responses:**
-    - `200 OK`: `{"message": "Note deleted successfully."}`
-    - `400 Bad Request`: Non-numeric or invalid ID format.
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Invalid/expired token OR note belongs to another user.
-    - `404 Not Found`: Note does not exist.
-
----
-
-### 5. Note Photos
-
-- **`PUT /notes/:id/photo`**
-  - **Auth:** Bearer Token required
-  - **Header:** `Authorization: Bearer <token>`, `Content-Type: multipart/form-data`
-  - **Form Field:** `photo` (File: JPEG, PNG, or WebP; max 5MB)
-  - **Responses:**
-    - `200 OK`: `{"message": "Photo uploaded successfully."}`
-    - `400 Bad Request`: Missing photo file, invalid file type, or invalid note ID format.
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Note belongs to another user.
-    - `404 Not Found`: Note does not exist.
-    - `413 Payload Too Large`: Photo file exceeds the maximum allowed size of 5MB.
-
-- **`GET /notes/:id/photo`**
-  - **Auth:** Bearer Token required
-  - **Header:** `Authorization: Bearer <token>`
-  - **Responses:**
-    - `200 OK`: Binary image data with matching `Content-Type` header (`image/jpeg`, `image/png`, or `image/webp`).
-    - `400 Bad Request`: Invalid note ID format.
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Note belongs to another user.
-    - `404 Not Found`: Note or photo does not exist.
-
-- **`DELETE /notes/:id/photo`**
-  - **Auth:** Bearer Token required
-  - **Header:** `Authorization: Bearer <token>`
-  - **Responses:**
-    - `200 OK`: `{"message": "Photo deleted successfully."}`
-    - `400 Bad Request`: Invalid note ID format.
-    - `401 Unauthorized`: Missing or malformed `Authorization` header.
-    - `403 Forbidden`: Note belongs to another user.
-    - `404 Not Found`: Note does not exist.
+- O envio da fotografia deve ser feito através do campo `photo`.
+- Formatos suportados: JPEG, PNG e WebP.
+- Tamanho máximo permitido: 5 MB.
