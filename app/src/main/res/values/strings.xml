@@ -90,7 +90,7 @@
     <string name="error_legacy_note_operation">Não é possível alterar notas guardadas no formato antigo.</string>
     <string name="account_dialog_title">Conta</string>
     <string name="close">Fechar</string>
-    <string name="open_account_desc">Abrir conta</string>
+    <string name="open_account_desc">Abrir menu da conta</string>
 
     <!-- Fotografia -->
     <string name="action_take_photo">Tirar fotografia</string>
