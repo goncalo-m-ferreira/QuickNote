@@ -274,8 +274,10 @@ class NoteEditActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                editTextTitulo.setText(loadedNote.title)
-                editTextConteudo.setText(loadedNote.content)
+                if (savedInstanceState == null) {
+                    editTextTitulo.setText(loadedNote.title)
+                    editTextConteudo.setText(loadedNote.content)
+                }
 
                 findViewById<TextView>(R.id.textViewEditorTitulo).text =
                     getString(R.string.editor_edit_note_title)
