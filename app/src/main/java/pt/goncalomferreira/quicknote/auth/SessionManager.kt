@@ -36,10 +36,20 @@ class SessionManager(context: Context) {
         return if (!email.isNullOrBlank()) email else null
     }
 
+    fun saveUserDisplayName(displayName: String) {
+        prefs.edit().putString(KEY_USER_DISPLAY_NAME, displayName.trim()).apply()
+    }
+
+    fun getUserDisplayName(): String? {
+        val displayName = prefs.getString(KEY_USER_DISPLAY_NAME, null)
+        return if (!displayName.isNullOrBlank()) displayName else null
+    }
+
     fun clearSession() {
         prefs.edit()
             .remove(KEY_JWT_TOKEN)
             .remove(KEY_USER_EMAIL)
+            .remove(KEY_USER_DISPLAY_NAME)
             .apply()
     }
 
@@ -47,5 +57,6 @@ class SessionManager(context: Context) {
         private const val PREF_NAME = "quicknote_session"
         private const val KEY_JWT_TOKEN = "jwt_token"
         private const val KEY_USER_EMAIL = "user_email"
+        private const val KEY_USER_DISPLAY_NAME = "user_display_name"
     }
 }
