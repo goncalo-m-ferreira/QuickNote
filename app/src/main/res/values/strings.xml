@@ -2,7 +2,6 @@
     <string name="app_name">QuickNote</string>
     <string name="main_title">As minhas notas</string>
     <string name="empty_notes_message">Ainda não existem notas.</string>
-    <string name="new_note">Nova nota</string>
     <string name="new_note_button">Nova nota</string>
     <string name="search_hint">Pesquisar notas...</string>
     <string name="no_notes_found">Nenhuma nota encontrada.</string>
@@ -29,12 +28,8 @@
     <!-- Sobre -->
     <string name="about_title">Sobre</string>
     <string name="about_project_label">Projeto</string>
-    <string name="about_course_label">Curso</string>
-    <string name="about_course">Licenciatura em Eng. Informática</string>
     <string name="about_course_full">Licenciatura em Engenharia Informática</string>
-    <string name="about_subject_label">Unidade Curricular</string>
     <string name="about_subject">Desenvolvimento de Aplicações Móveis</string>
-    <string name="about_academic_year_label">Ano Letivo</string>
     <string name="about_academic_year">2025/26</string>
     <string name="about_authors_label">Autores</string>
     <string name="about_author_goncalo_name">Gonçalo Ferreira</string>
@@ -74,11 +69,8 @@
     <string name="error_server">Erro no servidor. Tente novamente mais tarde.</string>
     <string name="error_connection">Sem ligação à internet ou à API. Tente novamente.</string>
     <string name="error_unknown">Ocorreu um erro inesperado. Tente novamente.</string>
-    <string name="session_user">Sessão: %1$s</string>
-    <string name="authenticated_user">Utilizador autenticado</string>
     <string name="logout_button">Terminar sessão</string>
     <string name="checking_session">A verificar sessão...</string>
-    <string name="logging_out">A terminar sessão...</string>
     <string name="error_session_validation">Não foi possível validar a sessão. Verifique a ligação.</string>
     <string name="error_connection_showing_cache">Sem ligação. A mostrar as notas guardadas neste dispositivo.</string>
     <string name="error_fetch_notes">Não foi possível atualizar as notas.</string>
@@ -88,8 +80,6 @@
     <string name="error_save_note">Não foi possível guardar a nota.</string>
     <string name="error_delete_note">Não foi possível eliminar a nota.</string>
     <string name="error_legacy_note_operation">Não é possível alterar notas guardadas no formato antigo.</string>
-    <string name="account_dialog_title">Conta</string>
-    <string name="close">Fechar</string>
     <string name="open_account_desc">Abrir menu da conta</string>
 
     <!-- Fotografia -->

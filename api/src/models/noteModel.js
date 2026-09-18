@@ -22,16 +22,6 @@ const NoteModel = {
     return result.rows[0] || null;
   },
 
-  async findByIdAndUser(id, userId) {
-    const result = await db.query(
-      `SELECT id, user_id, title, content, created_at, updated_at
-       FROM notes
-       WHERE id = $1 AND user_id = $2`,
-      [id, userId]
-    );
-    return result.rows[0] || null;
-  },
-
   async create(userId, title, content = '') {
     const result = await db.query(
       `INSERT INTO notes (user_id, title, content)

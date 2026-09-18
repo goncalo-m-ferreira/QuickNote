@@ -105,17 +105,10 @@ const AuthController = {
     }
   },
 
-  async logout(req, res) {
-    try {
-      // In a stateless JWT architecture, the server acknowledges token termination
-      // and instructs the client to purge stored tokens.
-      return res.status(200).json({
-        message: 'Logout successful. Token invalidated on client.'
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-      return res.status(500).json({ error: 'Internal server error during logout.' });
-    }
+  logout(req, res) {
+    return res.status(200).json({
+      message: 'Logout successful. Token invalidated on client.'
+    });
   }
 };
 

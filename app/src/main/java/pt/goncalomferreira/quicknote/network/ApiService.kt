@@ -47,12 +47,6 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<NotesResponse>
 
-    @GET("notes/{id}")
-    suspend fun getNoteById(
-        @Header("Authorization") token: String,
-        @Path("id") id: Long
-    ): Response<NoteResponse>
-
     @POST("notes")
     suspend fun createNote(
         @Header("Authorization") token: String,
